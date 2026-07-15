@@ -88,6 +88,14 @@ export const updatePedidoStatus = createServerFn({ method: "POST" })
     if (data.status === "entregue") patch.entregue_at = new Date().toISOString();
     const { error } = await context.supabase.from("pedidos").update(patch).eq("id", data.id);
     if (error) throw error;
+
+    // Libera o entregador quando pedido é entregue ou cancelado
+    if (data.status === "entregue" || data.status === "cancelado") {
+      const { data: ped } = await context.supabase.from("pedidos").select("entregador_id").eq("id", data.id).maybeSingle();
+      if (ped?.entregador_id) {
+        await (context.supabase as any).from("entregadores").update({ status: "disponivel" }).eq("id", ped.entregador_id);
+      }
+    }
     return { ok: true };
   });
 
@@ -97,8 +105,20 @@ export const assignEntregador = createServerFn({ method: "POST" })
   .inputValidator((d: { pedidoId: string; entregadorId: string | null }) =>
     z.object({ pedidoId: z.string().uuid(), entregadorId: z.string().uuid().nullable() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("pedidos").update({ entregador_id: data.entregadorId }).eq("id", data.pedidoId);
+    // Libera entregador anterior (se houver e for diferente do novo)
+    const { data: atual } = await context.supabase.from("pedidos").select("entregador_id").eq("id", data.pedidoId).maybeSingle();
+    if (atual?.entregador_id && atual.entregador_id !== data.entregadorId) {
+      await (context.supabase as any).from("entregadores").update({ status: "disponivel" }).eq("id", atual.entregador_id);
+    }
+
+    const patch: any = { entregador_id: data.entregadorId };
+    if (data.entregadorId) patch.status = "rota";
+    const { error } = await context.supabase.from("pedidos").update(patch).eq("id", data.pedidoId);
     if (error) throw error;
+
+    if (data.entregadorId) {
+      await (context.supabase as any).from("entregadores").update({ status: "em_entrega" }).eq("id", data.entregadorId);
+    }
     return { ok: true };
   });
 
