@@ -324,6 +324,26 @@ function ConfigPage() {
           </Field>
         </Card>
 
+        <Card icon={Clock} title="Som de notificação">
+          <p className="-mt-1 text-xs text-muted-foreground">
+            Toca automaticamente quando um novo pré-pedido chega, mesmo com a aba em segundo plano. Teste abaixo para liberar o áudio do navegador.
+          </p>
+          <button
+            type="button"
+            onClick={async () => {
+              const { unlockAudio, playNewOrderChime } = await import("@/lib/notify-sound");
+              unlockAudio();
+              playNewOrderChime();
+              toast.success("🔔 Som liberado — você receberá alertas de pré-pedidos.");
+            }}
+            className="mt-2 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-xs font-black text-primary hover:bg-primary/20"
+          >
+            🔔 Testar som de notificação
+          </button>
+        </Card>
+
+
+
         <button type="submit" disabled={save.isPending} className="w-full rounded-full gradient-primary py-3.5 text-sm font-bold text-primary-foreground shadow-float disabled:opacity-50">
           {save.isPending ? "Salvando…" : "Salvar configurações"}
         </button>

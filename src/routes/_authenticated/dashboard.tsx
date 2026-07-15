@@ -6,10 +6,14 @@ import { formatBRL, daysUntil } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
 import { NovoPedidoModal } from "@/components/NovoPedidoModal";
 import { ClienteProfileSheet } from "@/components/ClienteProfileSheet";
+import { PreOrderSummaryModal } from "@/components/PreOrderSummaryModal";
+import { usePreOrderRealtime } from "@/hooks/usePreOrderRealtime";
+import { unlockAudio } from "@/lib/notify-sound";
 import { useSessionUser } from "@/hooks/useSessionUser";
 import { isMasterEmail } from "@/lib/isMaster";
 import { Bell, TrendingUp, Package, AlertTriangle, Sparkles, Plus, Shield, Globe, Share2, Moon } from "lucide-react";
 import { toast } from "sonner";
+
 
 
 const dashOpts = queryOptions({
@@ -38,8 +42,19 @@ function Dashboard() {
   const usoPct = Math.min(100, Math.round((data.totalMes / data.limiteFree) * 100));
   const showMasterBtn = data.isAdminMaster || clientMaster;
 
+  // Realtime: novo pré-pedido → som + toast
+  usePreOrderRealtime(data.distribuidora.id);
+  // Destrava o áudio no primeiro clique do usuário no dashboard
+  useEffect(() => {
+    const h = () => { unlockAudio(); window.removeEventListener("click", h); };
+    window.addEventListener("click", h);
+    return () => window.removeEventListener("click", h);
+  }, []);
+
   return (
     <div className="space-y-4 p-4">
+      <PreOrderSummaryModal distribuidoraId={data.distribuidora.id} />
+
       <div className="flex items-center justify-between pt-2">
         <div className="flex items-center gap-3 min-w-0">
           {data.distribuidora.logo_url ? (
