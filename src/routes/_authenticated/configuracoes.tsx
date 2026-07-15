@@ -14,6 +14,7 @@ export const Route = createFileRoute("/_authenticated/configuracoes")({
 type Form = {
   nome_fantasia: string; razao_social: string;
   telefone: string; cnpj: string;
+  slug: string;
   horario_abertura: string; horario_fechamento: string;
   taxa_entrega_padrao: number; tempo_estimado_min: number;
   cep: string; logradouro: string; numero: string; complemento: string;
@@ -23,6 +24,7 @@ type Form = {
 const EMPTY: Form = {
   nome_fantasia: "", razao_social: "",
   telefone: "", cnpj: "",
+  slug: "",
   horario_abertura: "08:00", horario_fechamento: "18:00",
   taxa_entrega_padrao: 0, tempo_estimado_min: 45,
   cep: "", logradouro: "", numero: "", complemento: "",
