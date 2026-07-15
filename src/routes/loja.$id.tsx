@@ -1,7 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { formatVolume, displayNomeLoja } from "@/lib/format";
+import { maskCnpj } from "@/lib/br-utils";
 import { toast } from "sonner";
 import {
   ShoppingBag, Plus, Minus, Clock, MapPin, Droplet, Wine, Package as PkgIcon,
@@ -119,6 +121,11 @@ function LojaPage() {
   }
 
   const d = data.distribuidora as any;
+  const nomeLoja = displayNomeLoja(d);
+
+  useEffect(() => {
+    if (nomeLoja) document.title = `${nomeLoja} — Cardápio | Pedirápido`;
+  }, [nomeLoja]);
 
   return (
     <div className="min-h-screen bg-[#F7F9FC] pb-32">
@@ -128,7 +135,7 @@ function LojaPage() {
           <div className="flex items-center gap-3">
             <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white shadow-soft overflow-hidden aspect-square">
               {d.logo_url ? (
-                <img src={d.logo_url} alt={d.nome} className="h-full w-full object-contain" />
+                <img src={d.logo_url} alt={nomeLoja} className="h-full w-full object-contain" />
               ) : (
                 <div className="grid h-full w-full place-items-center gradient-primary text-primary-foreground">
                   <Droplet className="h-5 w-5" />
@@ -136,7 +143,7 @@ function LojaPage() {
               )}
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="truncate text-lg font-black tracking-tight">{d.nome}</h1>
+              <h1 className="truncate text-lg font-black tracking-tight">{nomeLoja}</h1>
               <div className="mt-0.5 flex items-center gap-2 text-xs">
                 <span className={cn(
                   "inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-bold",
@@ -212,6 +219,9 @@ function LojaPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-black">{p.nome}</p>
+                    {formatVolume(p.volume_valor, p.volume_unidade) && (
+                      <p className="mt-0.5 text-[11px] font-semibold text-muted-foreground">{formatVolume(p.volume_valor, p.volume_unidade)}</p>
+                    )}
                     {p.descricao && (
                       <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{p.descricao}</p>
                     )}
@@ -243,6 +253,15 @@ function LojaPage() {
           </ul>
         )}
       </main>
+
+      {/* Rodapé fiscal — Razão Social + CNPJ */}
+      {(d.razao_social || d.cnpj) && (
+        <footer className="mx-auto max-w-lg px-4 pt-2 pb-8 text-center text-[10px] leading-relaxed text-muted-foreground">
+          {d.razao_social && <div className="font-semibold">{d.razao_social}</div>}
+          {d.cnpj && <div>CNPJ: {maskCnpj(String(d.cnpj))}</div>}
+        </footer>
+      )}
+
 
       {/* Sticky bottom cart */}
       {qtyTotal > 0 && (

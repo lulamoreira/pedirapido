@@ -50,7 +50,10 @@ function AdminPage() {
               <div key={d.id} className="card-float p-4">
                 <div className="flex items-center justify-between">
                   <div className="min-w-0">
-                    <div className="truncate text-sm font-bold">{d.nome}</div>
+                    <div className="truncate text-sm font-bold">{(d as any).nome_fantasia ?? d.nome}</div>
+                    {(d as any).razao_social && (
+                      <div className="truncate text-[10px] text-muted-foreground">{(d as any).razao_social}</div>
+                    )}
                     <div className="text-xs text-muted-foreground">
                       {new Date(d.created_at).toLocaleDateString("pt-BR")}
                     </div>

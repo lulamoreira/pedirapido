@@ -34,7 +34,10 @@ function Perfil() {
       {data && (
         <div className="card-float mt-4 p-5">
           <div className="text-xs font-semibold uppercase text-muted-foreground">Distribuidora</div>
-          <div className="mt-1 text-lg font-black">{data.distribuidora.nome}</div>
+          <div className="mt-1 text-lg font-black">{data.distribuidora.nome_fantasia ?? data.distribuidora.nome}</div>
+          {data.distribuidora.razao_social && (
+            <div className="text-xs text-muted-foreground">{data.distribuidora.razao_social}</div>
+          )}
           <div className="mt-3 flex items-center justify-between">
             <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold uppercase text-primary">Plano {data.distribuidora.plano}</span>
             {data.distribuidora.plano === "free" && daysUntil(data.distribuidora.trial_expires_at) > 0 && (

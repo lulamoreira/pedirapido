@@ -91,7 +91,7 @@ function PedidoTrack() {
         <div className="mx-auto max-w-lg px-4 py-4 flex items-center gap-3">
           <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-white shadow-soft overflow-hidden aspect-square">
             {dist?.logo_url ? (
-              <img src={dist.logo_url} alt={dist.nome} className="h-full w-full object-contain" />
+              <img src={dist.logo_url} alt={(dist as any).nome_fantasia ?? dist.nome} className="h-full w-full object-contain" />
             ) : (
               <div className="grid h-full w-full place-items-center gradient-primary text-primary-foreground">
                 <Droplet className="h-5 w-5" />
@@ -100,7 +100,7 @@ function PedidoTrack() {
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-xs text-muted-foreground">Pedido em</p>
-            <p className="truncate text-sm font-black">{dist?.nome}</p>
+            <p className="truncate text-sm font-black">{(dist as any)?.nome_fantasia ?? dist?.nome}</p>
           </div>
           <p className="text-xs text-muted-foreground">#{String(p.id).slice(0, 6)}</p>
         </div>

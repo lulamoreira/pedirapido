@@ -189,7 +189,7 @@ export const listProdutos = createServerFn({ method: "GET" })
 
 export const upsertProduto = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { id?: string; nome: string; preco: number; estoque: number; estoque_minimo: number; categoria: "agua" | "bebidas" | "descartaveis" | "petiscos" | "outros" }) =>
+  .inputValidator((d: { id?: string; nome: string; preco: number; estoque: number; estoque_minimo: number; categoria: "agua" | "bebidas" | "descartaveis" | "petiscos" | "outros"; volume_valor?: number | null; volume_unidade?: "L" | "ml" | null }) =>
     z.object({
       id: z.string().uuid().optional(),
       nome: z.string().min(1).max(80),
@@ -197,6 +197,8 @@ export const upsertProduto = createServerFn({ method: "POST" })
       estoque: z.number().int().min(0),
       estoque_minimo: z.number().int().min(0),
       categoria: z.enum(["agua", "bebidas", "descartaveis", "petiscos", "outros"]),
+      volume_valor: z.number().positive().max(100000).nullish(),
+      volume_unidade: z.enum(["L", "ml"]).nullish(),
     }).parse(d))
   .handler(async ({ data, context }) => {
     const distId = await getDistId(context.supabase, context.userId);
@@ -206,7 +208,11 @@ export const upsertProduto = createServerFn({ method: "POST" })
     if (data.categoria !== "agua" && (dist?.plano ?? "free") !== "business") {
       throw new Error("Categoria disponível apenas no plano Business. Faça upgrade em /plano.");
     }
-    const payload: any = { nome: data.nome, preco: data.preco, estoque: data.estoque, estoque_minimo: data.estoque_minimo, categoria: data.categoria };
+    const payload: any = {
+      nome: data.nome, preco: data.preco, estoque: data.estoque, estoque_minimo: data.estoque_minimo, categoria: data.categoria,
+      volume_valor: data.volume_valor ?? null,
+      volume_unidade: data.volume_valor ? (data.volume_unidade ?? "L") : null,
+    };
     if (data.id) {
       const { error } = await context.supabase.from("produtos").update(payload).eq("id", data.id);
       if (error) throw error;
@@ -336,7 +342,7 @@ export const deleteEntregador = createServerFn({ method: "POST" })
 export const updateDistribuidoraConfig = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: {
-    nome: string; telefone?: string;
+    nome_fantasia: string; razao_social?: string | null; telefone?: string;
     horario_abertura: string; horario_fechamento: string;
     taxa_entrega_padrao: number; tempo_estimado_min: number;
     cnpj?: string | null;
@@ -345,7 +351,8 @@ export const updateDistribuidoraConfig = createServerFn({ method: "POST" })
     logo_url?: string | null;
   }) =>
     z.object({
-      nome: z.string().min(2).max(80),
+      nome_fantasia: z.string().min(2).max(120),
+      razao_social: z.string().max(200).nullish(),
       telefone: z.string().max(20).optional(),
       horario_abertura: z.string().regex(/^\d{2}:\d{2}$/),
       horario_fechamento: z.string().regex(/^\d{2}:\d{2}$/),
@@ -363,7 +370,10 @@ export const updateDistribuidoraConfig = createServerFn({ method: "POST" })
     }).parse(d))
   .handler(async ({ data, context }) => {
     const payload: Record<string, unknown> = {
-      nome: data.nome, telefone: data.telefone ?? null,
+      nome_fantasia: data.nome_fantasia,
+      nome: data.nome_fantasia, // legado, mantido em sync pelo trigger também
+      razao_social: data.razao_social ?? null,
+      telefone: data.telefone ?? null,
       horario_abertura: data.horario_abertura, horario_fechamento: data.horario_fechamento,
       taxa_entrega_padrao: data.taxa_entrega_padrao, tempo_estimado_min: data.tempo_estimado_min,
       cnpj: data.cnpj ?? null,

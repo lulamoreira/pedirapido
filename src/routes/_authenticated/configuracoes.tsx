@@ -12,7 +12,8 @@ export const Route = createFileRoute("/_authenticated/configuracoes")({
 });
 
 type Form = {
-  nome: string; telefone: string; cnpj: string;
+  nome_fantasia: string; razao_social: string;
+  telefone: string; cnpj: string;
   horario_abertura: string; horario_fechamento: string;
   taxa_entrega_padrao: number; tempo_estimado_min: number;
   cep: string; logradouro: string; numero: string; complemento: string;
@@ -20,7 +21,8 @@ type Form = {
 };
 
 const EMPTY: Form = {
-  nome: "", telefone: "", cnpj: "",
+  nome_fantasia: "", razao_social: "",
+  telefone: "", cnpj: "",
   horario_abertura: "08:00", horario_fechamento: "18:00",
   taxa_entrega_padrao: 0, tempo_estimado_min: 45,
   cep: "", logradouro: "", numero: "", complemento: "",
@@ -42,7 +44,8 @@ function ConfigPage() {
     if (data?.distribuidora) {
       const d = data.distribuidora as Record<string, unknown>;
       setForm({
-        nome: String(d.nome ?? ""),
+        nome_fantasia: String(d.nome_fantasia ?? d.nome ?? ""),
+        razao_social: String(d.razao_social ?? ""),
         telefone: String(d.telefone ?? ""),
         cnpj: d.cnpj ? maskCnpj(String(d.cnpj)) : "",
         horario_abertura: String(d.horario_abertura ?? "08:00"),
@@ -111,7 +114,8 @@ function ConfigPage() {
       }
       return updateDistribuidoraConfig({
         data: {
-          nome: form.nome,
+          nome_fantasia: form.nome_fantasia,
+          razao_social: form.razao_social || null,
           telefone: form.telefone || undefined,
           cnpj: form.cnpj ? form.cnpj.replace(/\D/g, "") : null,
           horario_abertura: form.horario_abertura,
@@ -199,8 +203,24 @@ function ConfigPage() {
         </Card>
 
         <Card icon={Store} title="Identidade">
-          <Field label="Nome fantasia / Razão social *">
-            <input required className="input" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
+          <Field label="Nome Fantasia *">
+            <input
+              required
+              className="input"
+              value={form.nome_fantasia}
+              onChange={(e) => setForm({ ...form, nome_fantasia: e.target.value })}
+              placeholder="Como seus clientes chamam sua loja"
+            />
+            <span className="mt-1 block text-[10px] text-muted-foreground">Aparece no app, no cardápio e nas mensagens.</span>
+          </Field>
+          <Field label="Razão Social">
+            <input
+              className="input"
+              value={form.razao_social}
+              onChange={(e) => setForm({ ...form, razao_social: e.target.value })}
+              placeholder="Nome jurídico registrado (fiscal)"
+            />
+            <span className="mt-1 block text-[10px] text-muted-foreground">Exibida apenas em áreas fiscais e no rodapé do cardápio, junto ao CNPJ.</span>
           </Field>
           <Field label="Telefone / WhatsApp">
             <input className="input" value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} placeholder="(11) 99999-9999" />

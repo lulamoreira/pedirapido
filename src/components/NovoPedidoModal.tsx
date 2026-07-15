@@ -4,7 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { X, Search, Plus, Minus, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { listProdutos, searchClienteByPhone, createManualPedido } from "@/lib/aquaflow.functions";
-import { formatBRL } from "@/lib/format";
+import { formatBRL, formatVolume } from "@/lib/format";
 
 type Item = { produto_id: string; quantidade: number };
 
@@ -111,6 +111,9 @@ export function NovoPedidoModal({ open, onClose }: { open: boolean; onClose: () 
                 <li key={p.id} className="flex items-center justify-between rounded-2xl bg-secondary/60 p-3">
                   <div className="min-w-0">
                     <div className="truncate text-sm font-bold">{p.nome}</div>
+                    {formatVolume(p.volume_valor, p.volume_unidade) && (
+                      <div className="text-[11px] font-semibold text-muted-foreground">{formatVolume(p.volume_valor, p.volume_unidade)}</div>
+                    )}
                     <div className="text-xs text-muted-foreground">{formatBRL(Number(p.preco))} · estoque {p.estoque}</div>
                   </div>
                   {it ? (

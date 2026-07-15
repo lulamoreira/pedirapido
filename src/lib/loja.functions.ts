@@ -10,7 +10,7 @@ export const getLojaPublica = createServerFn({ method: "GET" })
 
     const { data: dist, error } = await supabaseAdmin
       .from("distribuidoras")
-      .select("id,nome,telefone,plano,taxa_entrega_padrao,horario_abertura,horario_fechamento,tempo_estimado_min,status_assinatura,logo_url,logradouro,numero,complemento,bairro,cidade,uf,cep")
+      .select("id,nome,nome_fantasia,razao_social,cnpj,telefone,plano,taxa_entrega_padrao,horario_abertura,horario_fechamento,tempo_estimado_min,status_assinatura,logo_url,logradouro,numero,complemento,bairro,cidade,uf,cep")
       .eq("id", data.id)
       .maybeSingle();
     if (error) throw error;
@@ -18,7 +18,7 @@ export const getLojaPublica = createServerFn({ method: "GET" })
 
     const { data: prods } = await supabaseAdmin
       .from("produtos")
-      .select("id,nome,descricao,preco,categoria,estoque")
+      .select("id,nome,descricao,preco,categoria,estoque,volume_valor,volume_unidade")
       .eq("distribuidora_id", dist.id)
       .eq("ativo", true)
       .order("categoria")
@@ -186,7 +186,7 @@ export const getPedidoPublico = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: pedido, error } = await supabaseAdmin
       .from("pedidos")
-      .select("id,status,total,subtotal,taxa_entrega,forma_pagamento,codigo_pix,created_at,pago_at,entregue_at,distribuidora_id,distribuidora:distribuidoras(nome,tempo_estimado_min,telefone,logo_url),itens:pedido_itens(quantidade,preco_unit,subtotal,produto:produtos(nome)),entregador:entregadores(nome,veiculo_modelo,veiculo_placa)")
+      .select("id,status,total,subtotal,taxa_entrega,forma_pagamento,codigo_pix,created_at,pago_at,entregue_at,distribuidora_id,distribuidora:distribuidoras(nome,nome_fantasia,razao_social,cnpj,tempo_estimado_min,telefone,logo_url),itens:pedido_itens(quantidade,preco_unit,subtotal,produto:produtos(nome,volume_valor,volume_unidade)),entregador:entregadores(nome,veiculo_modelo,veiculo_placa)")
       .eq("id", data.id)
       .maybeSingle();
     if (error) throw error;
