@@ -22,11 +22,13 @@ export function NovoPedidoModal({ open, onClose }: { open: boolean; onClose: () 
 
   const reset = () => { setTelefone(""); setNome(""); setEndereco(""); setItens([]); setForma("pix"); setObs(""); };
 
+  const [clienteState, setClienteState] = useState<"idle" | "found" | "new">("idle");
+
   const buscar = useMutation({
     mutationFn: () => searchClienteByPhone({ data: { telefone } }),
     onSuccess: (c: any) => {
-      if (c) { setNome(c.nome); setEndereco(c.endereco ?? ""); toast.success("Cliente encontrado"); }
-      else toast.info("Novo cliente — preencha os dados");
+      if (c) { setNome(c.nome); setEndereco(c.endereco ?? ""); setClienteState("found"); toast.success("Cliente encontrado"); }
+      else { setClienteState("new"); }
     },
   });
 
