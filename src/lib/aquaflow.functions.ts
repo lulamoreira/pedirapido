@@ -27,11 +27,12 @@ export const getDashboard = createServerFn({ method: "GET" })
     const startOfDay = new Date(); startOfDay.setHours(0, 0, 0, 0);
     const startOfMonth = new Date(); startOfMonth.setDate(1); startOfMonth.setHours(0, 0, 0, 0);
 
-    const [{ data: pedidosHoje }, { data: pedidosMes }, { data: ativos }, { data: produtos }] = await Promise.all([
+    const [{ data: pedidosHoje }, { data: pedidosMes }, { data: ativos }, { data: produtos }, { data: preOrders }] = await Promise.all([
       supabase.from("pedidos").select("total,status").eq("distribuidora_id", dist.id).gte("created_at", startOfDay.toISOString()),
       supabase.from("pedidos").select("id").eq("distribuidora_id", dist.id).gte("created_at", startOfMonth.toISOString()),
-      supabase.from("pedidos").select("id,total,status,created_at,cliente:clientes(nome,telefone)").eq("distribuidora_id", dist.id).in("status", ["pendente", "preparo", "pago", "rota"]).order("created_at", { ascending: false }).limit(10),
+      supabase.from("pedidos").select("id,total,status,created_at,cliente:clientes(id,nome,telefone)").eq("distribuidora_id", dist.id).in("status", ["pendente", "preparo", "pago", "rota"]).order("created_at", { ascending: false }).limit(10),
       supabase.from("produtos").select("id,nome,estoque,estoque_minimo").eq("distribuidora_id", dist.id).eq("ativo", true),
+      supabase.from("pedidos").select("id").eq("distribuidora_id", dist.id).eq("is_pre_order", true).eq("status", "pendente"),
     ]);
 
     const receitaHoje = (pedidosHoje ?? []).filter((p: any) => p.status !== "cancelado").reduce((s: number, p: any) => s + Number(p.total), 0);
@@ -45,10 +46,12 @@ export const getDashboard = createServerFn({ method: "GET" })
       totalMes: (pedidosMes ?? []).length,
       pedidosAtivos: ativos ?? [],
       estoqueBaixo: (produtos ?? []).filter((p: any) => p.estoque <= p.estoque_minimo),
+      preOrdersCount: (preOrders ?? []).length,
       limiteFree: 50,
       isAdminMaster: !!masterRole || isMasterEmail,
     };
   });
+
 
 // -------- Pedidos list --------
 export const listPedidos = createServerFn({ method: "GET" })
