@@ -34,15 +34,46 @@ export const getLojaPublica = createServerFn({ method: "GET" })
     const isBusiness = (dist as any).plano === "business";
     const produtos = (prods ?? []).filter((p: any) => isBusiness || p.categoria === "agua");
 
-    // Aberto/fechado (comparação HH:mm)
-    const now = new Date();
-    const hhmm = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-    const aberto =
-      hhmm >= (dist as any).horario_abertura &&
-      hhmm <= (dist as any).horario_fechamento;
+    // Horários por dia da semana (0=Dom)
+    const { data: horarios } = await supabaseAdmin
+      .from("horarios_funcionamento")
+      .select("dia_semana,horario_abertura,horario_fechamento,is_fechado_o_dia_todo")
+      .eq("distribuidora_id", dist.id);
 
-    return { distribuidora: { ...dist, aberto }, produtos, isBusiness };
+    const now = new Date();
+    const dow = now.getDay();
+    const hhmm = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+
+    let aberto = false;
+    let proximoDia: number | null = null;
+    let proximoHorario: string | null = null;
+
+    const hoje = (horarios ?? []).find((h: any) => h.dia_semana === dow);
+    if (hoje && !hoje.is_fechado_o_dia_todo && hoje.horario_abertura && hoje.horario_fechamento) {
+      aberto = hhmm >= hoje.horario_abertura.slice(0, 5) && hhmm <= hoje.horario_fechamento.slice(0, 5);
+    } else if (!horarios || horarios.length === 0) {
+      // Fallback ao horário legado se não configurado
+      const ha = (dist as any).horario_abertura, hf = (dist as any).horario_fechamento;
+      if (ha && hf) aberto = hhmm >= ha && hhmm <= hf;
+    }
+
+    if (!aberto) {
+      for (let i = 0; i < 7; i++) {
+        const d = (dow + i) % 7;
+        const h = (horarios ?? []).find((x: any) => x.dia_semana === d);
+        if (h && !h.is_fechado_o_dia_todo && h.horario_abertura) {
+          if (i === 0 && hhmm < h.horario_abertura.slice(0, 5)) {
+            proximoDia = d; proximoHorario = h.horario_abertura.slice(0, 5); break;
+          } else if (i > 0) {
+            proximoDia = d; proximoHorario = h.horario_abertura.slice(0, 5); break;
+          }
+        }
+      }
+    }
+
+    return { distribuidora: { ...dist, aberto, proximoDia, proximoHorario }, produtos, isBusiness, horarios: horarios ?? [] };
   });
+
 
 // -------- Buscar cliente por telefone (autofill) --------
 export const findClientePublico = createServerFn({ method: "POST" })
