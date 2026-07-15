@@ -4,7 +4,9 @@ import { useNavigate } from "@tanstack/react-router";
 import { X, Search, Plus, Minus, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { listProdutos, searchClienteByPhone, createManualPedido } from "@/lib/aquaflow.functions";
-import { formatBRL, formatVolume } from "@/lib/format";
+import { formatBRL } from "@/lib/format";
+import { formatProdutoLinha } from "@/lib/text-normalize";
+
 
 type Item = { produto_id: string; quantidade: number };
 
