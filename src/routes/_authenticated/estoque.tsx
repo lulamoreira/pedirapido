@@ -36,6 +36,8 @@ function EstoquePage() {
         id: f.id, nome: f.nome.trim(),
         preco: Number(f.preco), estoque: Number(f.estoque), estoque_minimo: Number(f.estoque_minimo),
         categoria: f.categoria,
+        volume_valor: f.volume_valor ? Number(String(f.volume_valor).replace(",", ".")) : null,
+        volume_unidade: f.volume_valor ? f.volume_unidade : null,
       },
     }),
     onSuccess: () => { toast.success("Produto salvo!"); qc.invalidateQueries({ queryKey: ["produtos"] }); qc.invalidateQueries({ queryKey: ["dashboard"] }); setEditing(null); },
