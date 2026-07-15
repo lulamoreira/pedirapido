@@ -11,7 +11,7 @@ import { usePreOrderRealtime } from "@/hooks/usePreOrderRealtime";
 import { unlockAudio } from "@/lib/notify-sound";
 import { useSessionUser } from "@/hooks/useSessionUser";
 import { isMasterEmail } from "@/lib/isMaster";
-import { Bell, TrendingUp, Package, AlertTriangle, Sparkles, Plus, Shield, Globe, Share2, Moon } from "lucide-react";
+import { TrendingUp, Package, AlertTriangle, Sparkles, Plus, Shield, Globe, Share2, Moon } from "lucide-react";
 import { toast } from "sonner";
 
 
@@ -36,7 +36,7 @@ function Dashboard() {
 
   const { user } = useSessionUser();
   const clientMaster = isMasterEmail(user?.email);
-  useEffect(() => { if (user?.email) console.log("[Pedirápido] sessão:", user.email, "master?", clientMaster); }, [user?.email, clientMaster]);
+  
   const trialDays = daysUntil(data.distribuidora.trial_expires_at);
   const isFree = data.distribuidora.plano === "free";
   const usoPct = Math.min(100, Math.round((data.totalMes / data.limiteFree) * 100));
@@ -63,11 +63,6 @@ function Dashboard() {
           <div className="min-w-0">
             <p className="text-xs font-medium text-muted-foreground">Olá,</p>
             <h1 className="truncate text-xl font-black tracking-tight">{data.distribuidora.nome_fantasia ?? data.distribuidora.nome}</h1>
-            {user?.email && (
-              <p className="mt-0.5 truncate text-[10px] text-muted-foreground/70">
-                🔎 sessão: <span className="font-mono">{user.email}</span>{clientMaster && " · master"}
-              </p>
-            )}
           </div>
         </div>
 
@@ -77,9 +72,6 @@ function Dashboard() {
               <Shield className="h-5 w-5" />
             </Link>
           )}
-          <button className="grid h-11 w-11 place-items-center rounded-2xl bg-card shadow-soft" aria-label="Notificações">
-            <Bell className="h-5 w-5" />
-          </button>
         </div>
       </div>
 

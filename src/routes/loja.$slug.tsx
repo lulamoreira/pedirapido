@@ -71,6 +71,7 @@ function LojaPage() {
 
   const [cart, setCart] = useState<CartItem[]>([]);
   const [catAtiva, setCatAtiva] = useState<string>("agua");
+  const [busca, setBusca] = useState("");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   const categorias = useMemo(() => {
@@ -80,10 +81,20 @@ function LojaPage() {
     return Array.from(set);
   }, [data]);
 
+  useEffect(() => {
+    if (categorias.length && !categorias.includes(catAtiva)) {
+      setCatAtiva(categorias[0]);
+    }
+  }, [categorias, catAtiva]);
+
   const produtosFiltrados = useMemo(() => {
     if (!data?.produtos) return [];
+    const termo = busca.trim().toLowerCase();
+    if (termo) {
+      return data.produtos.filter((p: any) => String(p.nome ?? "").toLowerCase().includes(termo));
+    }
     return data.produtos.filter((p: any) => p.categoria === catAtiva);
-  }, [data, catAtiva]);
+  }, [data, catAtiva, busca]);
 
   const subtotal = cart.reduce((s, i) => s + i.preco * i.quantidade, 0);
   const qtyTotal = cart.reduce((s, i) => s + i.quantidade, 0);
@@ -249,6 +260,27 @@ function LojaPage() {
               </div>
             </div>
           )}
+
+          {/* Busca */}
+          <div className="mt-3 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              placeholder="Buscar produto…"
+              className="w-full rounded-full border border-border bg-white pl-9 pr-9 py-2 text-sm outline-none focus:border-primary"
+            />
+            {busca && (
+              <button
+                onClick={() => setBusca("")}
+                aria-label="Limpar busca"
+                className="absolute right-2 top-1/2 -translate-y-1/2 grid h-6 w-6 place-items-center rounded-full bg-secondary text-muted-foreground"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -284,10 +316,11 @@ function LojaPage() {
           <ul className="space-y-3">
             {produtosFiltrados.map((p: any) => {
               const noCart = cart.find(i => i.produto_id === p.id);
+              const CatIcon = CAT_META[p.categoria]?.icon ?? Droplet;
               return (
                 <li key={p.id} className="rounded-2xl bg-white p-4 shadow-soft flex items-center gap-3">
                   <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-primary/10">
-                    <Droplet className="h-7 w-7 text-primary" />
+                    <CatIcon className="h-7 w-7 text-primary" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-black">{p.nome}</p>

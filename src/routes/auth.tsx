@@ -36,7 +36,7 @@ function AuthPage() {
     setLoading(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -45,8 +45,12 @@ function AuthPage() {
           },
         });
         if (error) throw error;
-        toast.success("Conta criada! Você já pode entrar.");
-        setMode("login");
+        if (data.session) {
+          navigate({ to: "/dashboard", replace: true });
+        } else {
+          toast.success("Conta criada! Confirme seu e-mail para entrar.");
+          setMode("login");
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -142,6 +146,30 @@ function AuthPage() {
             {mode === "login" ? "Entrar" : "Criar conta"}
           </button>
         </form>
+
+        {mode === "login" && (
+          <button
+            type="button"
+            onClick={async () => {
+              if (!email) {
+                toast.error("Digite seu e-mail primeiro");
+                return;
+              }
+              try {
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                  redirectTo: window.location.origin + "/auth",
+                });
+                if (error) throw error;
+                toast.success("Enviamos um link de redefinição para seu e-mail.");
+              } catch (err) {
+                toast.error(err instanceof Error ? err.message : "Erro ao enviar link");
+              }
+            }}
+            className="mt-3 w-full text-center text-xs font-semibold text-primary hover:underline"
+          >
+            Esqueci minha senha
+          </button>
+        )}
 
         <button
           onClick={() => setMode(mode === "login" ? "signup" : "login")}
