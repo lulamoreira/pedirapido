@@ -18,6 +18,7 @@ function PedidoDetail() {
   const qc = useQueryClient();
   const { data: pedido, isLoading } = useQuery({ queryKey: ["pedido", id], queryFn: () => getPedido({ data: { id } }) });
   const { data: entregadores = [] } = useQuery({ queryKey: ["entregadores"], queryFn: () => listEntregadores() });
+  const { data: notifs = [] } = useQuery({ queryKey: ["notifs", id], queryFn: () => listNotificacoes({ data: { pedidoId: id } }) });
 
   const mut = useMutation({
     mutationFn: (status: string) => updatePedidoStatus({ data: { id, status } }),
