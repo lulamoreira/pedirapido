@@ -72,6 +72,7 @@ export type Database = {
           owner_user_id: string
           plano: Database["public"]["Enums"]["plano_tipo"]
           razao_social: string | null
+          slug: string | null
           status_assinatura: Database["public"]["Enums"]["status_assinatura_tipo"]
           taxa_entrega_padrao: number
           telefone: string | null
@@ -99,6 +100,7 @@ export type Database = {
           owner_user_id: string
           plano?: Database["public"]["Enums"]["plano_tipo"]
           razao_social?: string | null
+          slug?: string | null
           status_assinatura?: Database["public"]["Enums"]["status_assinatura_tipo"]
           taxa_entrega_padrao?: number
           telefone?: string | null
@@ -126,6 +128,7 @@ export type Database = {
           owner_user_id?: string
           plano?: Database["public"]["Enums"]["plano_tipo"]
           razao_social?: string | null
+          slug?: string | null
           status_assinatura?: Database["public"]["Enums"]["status_assinatura_tipo"]
           taxa_entrega_padrao?: number
           telefone?: string | null
@@ -432,6 +435,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      ensure_unique_slug: {
+        Args: { _base: string; _self: string }
+        Returns: string
+      }
       get_user_distribuidora_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
@@ -440,6 +447,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      slugify: { Args: { v: string }; Returns: string }
     }
     Enums: {
       app_role: "admin_master" | "distribuidora" | "entregador"
