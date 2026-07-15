@@ -308,12 +308,9 @@ function ConfigPage() {
           </Field>
         </Card>
 
-        <Card icon={Clock} title="Horário de funcionamento">
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Abre às"><input type="time" required className="input" value={form.horario_abertura} onChange={(e) => setForm({ ...form, horario_abertura: e.target.value })} /></Field>
-            <Field label="Fecha às"><input type="time" required className="input" value={form.horario_fechamento} onChange={(e) => setForm({ ...form, horario_fechamento: e.target.value })} /></Field>
-          </div>
-        </Card>
+        <WeeklyHoursCard />
+
+
 
         <Card icon={Truck} title="Taxa de entrega padrão">
           <Field label="Valor (R$)">
