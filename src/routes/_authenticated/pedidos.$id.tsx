@@ -65,28 +65,38 @@ function PedidoDetail() {
         </div>
       </div>
 
-      {/* Entregador */}
-      <div className="card-float mt-3 p-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Entregador</h2>
-          <Link to="/entregadores" className="text-xs font-semibold text-primary">Gerenciar</Link>
+      {/* Entregador — só quando pago ou em preparo */}
+      {(p.status === "pago" || p.status === "preparo" || p.status === "rota") && (
+        <div className="card-float mt-3 p-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Atribuir entregador</h2>
+            <Link to="/entregadores" className="text-xs font-semibold text-primary">Gerenciar</Link>
+          </div>
+          <div className="mt-2 flex items-center gap-2">
+            <div className="grid h-9 w-9 place-items-center rounded-xl bg-accent"><Bike className="h-4 w-4 text-primary" /></div>
+            <select
+              value={p.entregador_id ?? ""}
+              onChange={(e) => assign.mutate(e.target.value || null)}
+              className="input flex-1"
+            >
+              <option value="">— Não atribuído —</option>
+              {(entregadores as any[])
+                .filter((en) => en.status === "disponivel" || en.id === p.entregador_id)
+                .map((en) => (
+                  <option key={en.id} value={en.id}>
+                    {en.nome}{en.veiculo_placa ? ` · ${en.veiculo_placa}` : ""}{en.id === p.entregador_id ? " (atual)" : ""}
+                  </option>
+                ))}
+            </select>
+          </div>
+          {p.entregador && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Em rota com <span className="font-semibold text-foreground">{p.entregador.nome}</span>
+              {p.entregador.veiculo_placa ? ` · ${p.entregador.veiculo_placa}` : ""}
+            </p>
+          )}
         </div>
-        <div className="mt-2 flex items-center gap-2">
-          <div className="grid h-9 w-9 place-items-center rounded-xl bg-accent"><Bike className="h-4 w-4 text-primary" /></div>
-          <select
-            value={p.entregador_id ?? ""}
-            onChange={(e) => assign.mutate(e.target.value || null)}
-            className="input flex-1"
-          >
-            <option value="">— Não atribuído —</option>
-            {(entregadores as any[]).map((en) => (
-              <option key={en.id} value={en.id} disabled={en.status === "inativo"}>
-                {en.nome}{en.veiculo_placa ? ` · ${en.veiculo_placa}` : ""}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+      )}
 
       <div className="card-float mt-3 p-4">
         <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Itens</h2>
