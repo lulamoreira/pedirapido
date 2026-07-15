@@ -71,6 +71,7 @@ function LojaPage() {
 
   const [cart, setCart] = useState<CartItem[]>([]);
   const [catAtiva, setCatAtiva] = useState<string>("agua");
+  const [busca, setBusca] = useState("");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   const categorias = useMemo(() => {
@@ -80,10 +81,20 @@ function LojaPage() {
     return Array.from(set);
   }, [data]);
 
+  useEffect(() => {
+    if (categorias.length && !categorias.includes(catAtiva)) {
+      setCatAtiva(categorias[0]);
+    }
+  }, [categorias, catAtiva]);
+
   const produtosFiltrados = useMemo(() => {
     if (!data?.produtos) return [];
+    const termo = busca.trim().toLowerCase();
+    if (termo) {
+      return data.produtos.filter((p: any) => String(p.nome ?? "").toLowerCase().includes(termo));
+    }
     return data.produtos.filter((p: any) => p.categoria === catAtiva);
-  }, [data, catAtiva]);
+  }, [data, catAtiva, busca]);
 
   const subtotal = cart.reduce((s, i) => s + i.preco * i.quantidade, 0);
   const qtyTotal = cart.reduce((s, i) => s + i.quantidade, 0);
