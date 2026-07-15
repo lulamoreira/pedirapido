@@ -695,6 +695,57 @@ function CheckoutModal(p: CheckoutProps) {
                   {buscandoCli && <div className="grid h-11 w-11 place-items-center"><Loader2 className="h-4 w-4 animate-spin text-primary" /></div>}
                 </div>
               </div>
+
+              {p.verificacaoExigida && (
+                verificado ? (
+                  <div className="rounded-2xl border-2 border-emerald-300 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4" /> Telefone verificado
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border-2 border-primary/30 bg-primary/5 p-3 space-y-2">
+                    <p className="text-xs font-bold text-primary">Verificação por WhatsApp obrigatória</p>
+                    {!otpEnviado ? (
+                      <Button
+                        type="button"
+                        onClick={enviarOtp}
+                        disabled={enviandoOtp || telefoneDigits.length < 10 || cooldown > 0}
+                        className="w-full rounded-2xl h-11 gradient-primary font-black"
+                      >
+                        {enviandoOtp ? <Loader2 className="h-4 w-4 animate-spin" /> : (cooldown > 0 ? `Aguarde ${cooldown}s` : "Enviar código no WhatsApp")}
+                      </Button>
+                    ) : (
+                      <>
+                        <div className="flex gap-2">
+                          <Input
+                            value={codigoInput}
+                            onChange={(e) => setCodigoInput(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                            placeholder="Código de 6 dígitos"
+                            inputMode="numeric"
+                            className="rounded-2xl h-11 text-center tracking-widest font-black"
+                          />
+                          <Button
+                            type="button"
+                            onClick={verificarOtp}
+                            disabled={verificandoOtp || codigoInput.length !== 6}
+                            className="rounded-2xl h-11 gradient-primary font-black px-4"
+                          >
+                            {verificandoOtp ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verificar"}
+                          </Button>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={enviarOtp}
+                          disabled={enviandoOtp || cooldown > 0}
+                          className="text-[11px] font-bold text-primary disabled:text-muted-foreground"
+                        >
+                          {cooldown > 0 ? `Reenviar em ${cooldown}s` : "Reenviar código"}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )
+              )}
+
               <div>
                 <Label className="text-xs font-bold">Nome completo *</Label>
                 <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Seu nome" className="mt-1 rounded-2xl h-11" />
