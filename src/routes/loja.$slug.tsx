@@ -291,12 +291,12 @@ function LojaPage() {
                   ) : (
                     <button
                       onClick={() => addToCart(p)}
-                      disabled={!d.aberto}
-                      className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl gradient-primary text-primary-foreground shadow-soft disabled:opacity-50"
+                      className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl gradient-primary text-primary-foreground shadow-soft"
                       aria-label="Adicionar"
                     >
                       <Plus className="h-5 w-5" />
                     </button>
+
                   )}
                 </li>
               );
