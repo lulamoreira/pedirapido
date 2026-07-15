@@ -6,7 +6,9 @@ import { Search, Users, Phone, MapPin, Package, Plus } from "lucide-react";
 import { listClientes } from "@/lib/aquaflow.functions";
 import { BottomNav } from "@/components/BottomNav";
 import { NovoClienteModal } from "@/components/NovoClienteModal";
+import { ClienteProfileSheet } from "@/components/ClienteProfileSheet";
 import { Button } from "@/components/ui/button";
+
 
 export const Route = createFileRoute("/_authenticated/clientes")({
   component: ClientesPage,
