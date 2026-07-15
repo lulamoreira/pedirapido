@@ -105,9 +105,10 @@ export const verifyOtp = createServerFn({ method: "POST" })
       .limit(1);
     if (error) throw error;
 
-    const row = (rows ?? [])[0] as
+    const row = (((rows ?? [])[0] as unknown) as
       | { id: string; codigo_hash: string; tentativas: number; expira_em: string; verificado_at: string | null }
-      | undefined;
+      | undefined);
+
 
     if (!row) throw new Error("Código expirado. Peça um novo.");
     if ((row.tentativas ?? 0) >= 5) throw new Error("Muitas tentativas. Peça um novo código.");
