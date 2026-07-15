@@ -450,7 +450,9 @@ function CheckoutModal(p: CheckoutProps) {
           itens: p.cart.map(i => ({ produto_id: i.produto_id, quantidade: i.quantidade })),
           forma_pagamento: forma,
           troco_para: forma === "dinheiro" && troco ? Number(troco.replace(",", ".")) : null,
+          is_pre_order: p.isClosed,
         },
+
       });
       setResultado(r);
       setStep(4);
