@@ -139,6 +139,7 @@ function ConfigPage() {
           uf: form.uf ? form.uf.toUpperCase().slice(0, 2) : null,
           logo_url: logoDataUrl,
           slug: form.slug ? form.slug.trim() : null,
+          verificacao_whatsapp: form.verificacao_whatsapp,
         },
       });
     },
