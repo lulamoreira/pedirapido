@@ -15,6 +15,7 @@ import {
 import {
   getLojaPublica, findClientePublico, checkoutLojaPublica,
 } from "@/lib/loja.functions";
+import { requestOtp, verifyOtp } from "@/lib/otp.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
