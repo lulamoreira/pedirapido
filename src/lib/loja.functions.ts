@@ -1,6 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { generatePixCode } from "@/lib/pix";
+import { normalizeProperName, normalizeSentence } from "@/lib/text-normalize";
+
+
 
 // -------- Carregar loja pública (distribuidora + catálogo) --------
 // Aceita slug (novo) ou UUID (legado) no mesmo parâmetro `id`.
