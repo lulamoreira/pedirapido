@@ -45,10 +45,17 @@ function PedidosList() {
         <Link to="/dashboard" className="grid h-10 w-10 place-items-center rounded-2xl bg-card shadow-soft">
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <h1 className="text-xl font-black">Pedidos</h1>
+        <h1 className="text-xl font-black">{preOrder ? "Pré-pedidos" : "Pedidos"}</h1>
       </div>
 
+      {preOrder && (
+        <Link to="/pedidos" className="mt-3 inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-800 px-3 py-1 text-xs font-bold">
+          🌙 Filtrando pré-pedidos · Limpar filtro ✕
+        </Link>
+      )}
+
       <div className="relative mt-4">
+
         <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <input
           value={busca}
