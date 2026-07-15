@@ -40,11 +40,18 @@ function ClientesPage() {
             <div className="grid h-11 w-11 place-items-center rounded-2xl gradient-primary text-primary-foreground shadow-soft">
               <Users className="h-5 w-5" />
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <h1 className="text-lg font-black tracking-tight">Meus clientes</h1>
               <p className="text-xs text-muted-foreground">{total} {total === 1 ? "cliente cadastrado" : "clientes cadastrados"}</p>
             </div>
+            <Button
+              onClick={() => setOpenNovo(true)}
+              className="rounded-full h-11 px-4 gradient-primary text-primary-foreground font-black shadow-soft shrink-0"
+            >
+              <Plus className="h-4 w-4 mr-1" /> Novo
+            </Button>
           </div>
+
           <div className="mt-3 flex items-center gap-2 rounded-2xl bg-secondary px-3">
             <Search className="h-4 w-4 text-muted-foreground" />
             <input
