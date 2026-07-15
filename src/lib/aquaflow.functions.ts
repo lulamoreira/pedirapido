@@ -392,6 +392,45 @@ export const listClientes = createServerFn({ method: "POST" })
     }));
   });
 
+// -------- Criar cliente manualmente (CRM) --------
+export const createCliente = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { nome: string; telefone: string; endereco: string; cep?: string }) =>
+    z.object({
+      nome: z.string().trim().min(2, "Nome muito curto").max(120),
+      telefone: z.string().trim().min(8).max(20),
+      endereco: z.string().trim().min(3, "Endereço obrigatório").max(500),
+      cep: z.string().trim().max(20).optional(),
+    }).parse(d))
+  .handler(async ({ data, context }) => {
+    const distId = await getDistId(context.supabase, context.userId);
+    if (!distId) throw new Error("Distribuidora não encontrada");
+    const digits = data.telefone.replace(/\D/g, "");
+    if (digits.length < 10) throw new Error("Telefone inválido");
+
+    const { data: existing } = await context.supabase
+      .from("clientes")
+      .select("id,nome")
+      .eq("distribuidora_id", distId)
+      .eq("telefone", digits)
+      .maybeSingle();
+    if (existing) {
+      throw new Error(`DUPLICATE:${existing.nome}`);
+    }
+
+    const { data: novo, error } = await context.supabase.from("clientes").insert({
+      distribuidora_id: distId,
+      nome: data.nome.trim(),
+      telefone: digits,
+      endereco: data.endereco.trim(),
+      cep: data.cep?.trim() || null,
+    }).select("*").single();
+    if (error) throw error;
+    return novo;
+  });
+
+
+
 // -------- Criar pedido manual (PDV) --------
 export const createManualPedido = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
