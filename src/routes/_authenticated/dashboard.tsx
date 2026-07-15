@@ -58,6 +58,47 @@ function Dashboard() {
         </div>
       </div>
 
+      {/* Cardápio Digital Público */}
+      {(() => {
+        const lojaPath = `/loja/${data.distribuidora.id}`;
+        const lojaUrl = typeof window !== "undefined" ? `${window.location.origin}${lojaPath}` : `https://pedirapido.lovable.app${lojaPath}`;
+        const displayUrl = lojaUrl.replace(/^https?:\/\//, "");
+        const copiar = async () => {
+          try {
+            await navigator.clipboard.writeText(lojaUrl);
+            toast.success("Link copiado! Compartilhe com seus clientes no WhatsApp. 🚀");
+          } catch {
+            toast.error("Não foi possível copiar o link");
+          }
+        };
+        return (
+          <div className="flex items-center gap-3 rounded-2xl border border-primary/20 bg-card p-3 shadow-soft">
+            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary">
+              <Globe className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-black uppercase tracking-wider text-primary">Seu cardápio digital</p>
+              <a
+                href={lojaUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block truncate text-sm font-bold text-foreground hover:underline"
+                title={displayUrl}
+              >
+                {displayUrl}
+              </a>
+            </div>
+            <button
+              onClick={copiar}
+              aria-label="Copiar link do cardápio"
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl gradient-primary text-primary-foreground shadow-soft active:scale-95 transition-transform"
+            >
+              <Share2 className="h-5 w-5" />
+            </button>
+          </div>
+        );
+      })()}
+
       {/* CTA Novo Pedido */}
       <button
         onClick={() => setShowNovo(true)}
