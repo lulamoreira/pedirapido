@@ -355,8 +355,10 @@ export type Database = {
           estoque: number
           estoque_minimo: number
           id: string
+          marca: string | null
           nome: string
           preco: number
+          tipo_embalagem: string | null
           volume_unidade: string | null
           volume_valor: number | null
         }
@@ -369,8 +371,10 @@ export type Database = {
           estoque?: number
           estoque_minimo?: number
           id?: string
+          marca?: string | null
           nome: string
           preco: number
+          tipo_embalagem?: string | null
           volume_unidade?: string | null
           volume_valor?: number | null
         }
@@ -383,8 +387,10 @@ export type Database = {
           estoque?: number
           estoque_minimo?: number
           id?: string
+          marca?: string | null
           nome?: string
           preco?: number
+          tipo_embalagem?: string | null
           volume_unidade?: string | null
           volume_valor?: number | null
         }
