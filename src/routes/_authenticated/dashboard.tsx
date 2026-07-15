@@ -110,6 +110,31 @@ function Dashboard() {
         );
       })()}
 
+      {/* Alerta de Pré-pedidos */}
+      {data.preOrdersCount > 0 && (
+        <div className="rounded-2xl border-2 border-amber-400 bg-gradient-to-br from-amber-50 to-yellow-100 p-4 shadow-float">
+          <div className="flex items-start gap-3">
+            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-amber-500 text-white animate-pulse">
+              <Moon className="h-6 w-6" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-[10px] font-black uppercase tracking-wider text-amber-700">🚨 Atenção</div>
+              <p className="mt-1 text-sm font-bold text-amber-900">
+                Você tem {data.preOrdersCount} {data.preOrdersCount === 1 ? "pré-pedido acumulado" : "pré-pedidos acumulados"} feito{data.preOrdersCount === 1 ? "" : "s"} fora do horário de funcionamento!
+              </p>
+              <p className="mt-0.5 text-xs text-amber-800">Abra o sistema e despache para os entregadores.</p>
+              <Link
+                to="/pedidos"
+                search={{ preOrder: true } as any}
+                className="mt-3 inline-flex items-center gap-1 rounded-full bg-amber-600 px-4 py-1.5 text-xs font-black text-white shadow-soft hover:bg-amber-700"
+              >
+                Ver pré-pedidos →
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* CTA Novo Pedido */}
       <button
         onClick={() => setShowNovo(true)}
@@ -123,6 +148,7 @@ function Dashboard() {
           <div className="text-xs opacity-90">Venda balcão · PIX, Cartão ou Dinheiro</div>
         </div>
       </button>
+
 
       {isFree && trialDays > 0 && (
         <Link to="/plano" className="flex items-center gap-3 rounded-2xl bg-card p-4 shadow-soft ring-1 ring-primary/20">
