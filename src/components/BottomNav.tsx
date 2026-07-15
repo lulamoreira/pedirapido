@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, ClipboardList, Package, User, Shield, Users } from "lucide-react";
+import { Home, ClipboardList, Package, User, Shield, Users, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSessionUser } from "@/hooks/useSessionUser";
 import { isMasterEmail } from "@/lib/isMaster";
@@ -9,6 +9,7 @@ const BASE = [
   { to: "/pedidos", label: "Pedidos", icon: ClipboardList },
   { to: "/clientes", label: "Clientes", icon: Users },
   { to: "/estoque", label: "Estoque", icon: Package },
+  { to: "/ajuda", label: "Ajuda", icon: HelpCircle },
   { to: "/perfil", label: "Perfil", icon: User },
 ] as const;
 
@@ -17,7 +18,7 @@ export function BottomNav() {
   const { user } = useSessionUser();
   const showAdmin = isMasterEmail(user?.email);
   const items = showAdmin
-    ? [...BASE.slice(0, 4), { to: "/admin", label: "Admin", icon: Shield } as const, BASE[4]]
+    ? [...BASE.slice(0, 4), { to: "/admin", label: "Admin", icon: Shield } as const, ...BASE.slice(4)]
     : BASE;
 
   return (
