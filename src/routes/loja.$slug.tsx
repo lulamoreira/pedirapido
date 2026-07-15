@@ -872,16 +872,38 @@ function CheckoutModal(p: CheckoutProps) {
               </Button>
             )}
             {step === 2 && (
-              <Button onClick={() => setStep(3)} className="w-full rounded-2xl h-12 gradient-primary font-black">
-                Ir para pagamento
-              </Button>
+              <>
+                <Button
+                  onClick={() => setStep(3)}
+                  disabled={p.verificacaoExigida && !verificado}
+                  className="w-full rounded-2xl h-12 gradient-primary font-black"
+                >
+                  Ir para pagamento
+                </Button>
+                {p.verificacaoExigida && !verificado && (
+                  <p className="mt-2 text-center text-[11px] font-bold text-muted-foreground">
+                    Verifique seu telefone no WhatsApp para continuar.
+                  </p>
+                )}
+              </>
             )}
             {step === 3 && (
-              <Button onClick={finalizar} disabled={loading} className="w-full rounded-2xl h-12 gradient-primary font-black">
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : (p.isClosed ? `Enviar pré-pedido · ${fmt(total)}` : `Finalizar pedido · ${fmt(total)}`)}
-              </Button>
-
+              <>
+                <Button
+                  onClick={finalizar}
+                  disabled={loading || (p.verificacaoExigida && !verificado)}
+                  className="w-full rounded-2xl h-12 gradient-primary font-black"
+                >
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : (p.isClosed ? `Enviar pré-pedido · ${fmt(total)}` : `Finalizar pedido · ${fmt(total)}`)}
+                </Button>
+                {p.verificacaoExigida && !verificado && (
+                  <p className="mt-2 text-center text-[11px] font-bold text-muted-foreground">
+                    Volte e verifique seu telefone para finalizar.
+                  </p>
+                )}
+              </>
             )}
+
           </div>
         )}
       </DialogContent>
