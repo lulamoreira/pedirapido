@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { listProdutos, upsertProduto, deleteProduto, getPlano } from "@/lib/aquaflow.functions";
-import { formatBRL, formatVolume } from "@/lib/format";
+import { formatBRL } from "@/lib/format";
+import { formatProdutoLinha } from "@/lib/text-normalize";
 import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, Lock, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
@@ -12,8 +13,10 @@ export const Route = createFileRoute("/_authenticated/estoque")({
 
 type Categoria = "agua" | "bebidas" | "descartaveis" | "petiscos" | "outros";
 type Unidade = "L" | "ml";
-type FormState = { id?: string; nome: string; preco: string; estoque: string; estoque_minimo: string; categoria: Categoria; volume_valor: string; volume_unidade: Unidade };
-const empty: FormState = { nome: "", preco: "", estoque: "0", estoque_minimo: "5", categoria: "agua", volume_valor: "", volume_unidade: "L" };
+type FormState = { id?: string; nome: string; preco: string; estoque: string; estoque_minimo: string; categoria: Categoria; volume_valor: string; volume_unidade: Unidade; marca: string; tipo_embalagem: string; descricao: string };
+const empty: FormState = { nome: "", preco: "", estoque: "0", estoque_minimo: "5", categoria: "agua", volume_valor: "", volume_unidade: "L", marca: "", tipo_embalagem: "", descricao: "" };
+
+const TIPOS_EMBALAGEM = ["Galão", "Garrafa", "Copo", "Lata", "Fardo", "Caixa", "Outro"];
 
 const CATEGORIAS: { value: Categoria; label: string; emoji: string; onlyBusiness: boolean }[] = [
   { value: "agua", label: "Água", emoji: "💧", onlyBusiness: false },
@@ -22,6 +25,7 @@ const CATEGORIAS: { value: Categoria; label: string; emoji: string; onlyBusiness
   { value: "petiscos", label: "Petiscos / Salgadinhos", emoji: "🍿", onlyBusiness: true },
   { value: "outros", label: "Outros (Gelo, Carvão…)", emoji: "🧊", onlyBusiness: true },
 ];
+
 
 function EstoquePage() {
   const qc = useQueryClient();
