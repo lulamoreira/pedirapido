@@ -28,6 +28,8 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 function Dashboard() {
   const { data } = useSuspenseQuery(dashOpts);
   const [showNovo, setShowNovo] = useState(false);
+  const [selectedCliente, setSelectedCliente] = useState<string | null>(null);
+
   const { user } = useSessionUser();
   const clientMaster = isMasterEmail(user?.email);
   useEffect(() => { if (user?.email) console.log("[Pedirápido] sessão:", user.email, "master?", clientMaster); }, [user?.email, clientMaster]);
