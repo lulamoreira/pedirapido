@@ -69,12 +69,19 @@ function PedidoDetail() {
 
       <div className="card-float mt-4 p-4">
         <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Cliente</h2>
-        <p className="mt-2 text-base font-bold">{p.cliente.nome}</p>
+        <button
+          type="button"
+          onClick={() => setShowCliente(true)}
+          className="mt-2 text-base font-bold text-primary hover:underline text-left"
+        >
+          {p.cliente.nome}
+        </button>
         <div className="mt-2 space-y-1 text-sm text-muted-foreground">
           <div className="flex items-center gap-2"><Phone className="h-4 w-4" /> {formatPhone(p.cliente.telefone)}</div>
           {p.cliente.endereco && <div className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0" /> {p.cliente.endereco}</div>}
         </div>
       </div>
+
 
       {/* Entregador — só quando pago ou em preparo */}
       {(p.status === "pago" || p.status === "preparo" || p.status === "rota") && (
