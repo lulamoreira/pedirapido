@@ -497,14 +497,15 @@ export const createCliente = createServerFn({ method: "POST" })
 
     const { data: novo, error } = await context.supabase.from("clientes").insert({
       distribuidora_id: distId,
-      nome: data.nome.trim(),
+      nome: normalizeProperName(data.nome),
       telefone: digits,
-      endereco: data.endereco.trim(),
+      endereco: normalizeSentence(data.endereco),
       cep: data.cep?.trim() || null,
     }).select("*").single();
     if (error) throw error;
     return novo;
   });
+
 
 
 
