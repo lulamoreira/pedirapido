@@ -42,11 +42,15 @@ function EstoquePage() {
         categoria: f.categoria,
         volume_valor: f.volume_valor ? Number(String(f.volume_valor).replace(",", ".")) : null,
         volume_unidade: f.volume_valor ? f.volume_unidade : null,
+        marca: f.marca.trim() || null,
+        tipo_embalagem: f.tipo_embalagem.trim() || null,
+        descricao: f.descricao.trim() || null,
       },
     }),
     onSuccess: () => { toast.success("Produto salvo!"); qc.invalidateQueries({ queryKey: ["produtos"] }); qc.invalidateQueries({ queryKey: ["dashboard"] }); setEditing(null); },
     onError: (e: Error) => toast.error(e.message),
   });
+
 
   const remove = useMutation({
     mutationFn: (id: string) => deleteProduto({ data: { id } }),
