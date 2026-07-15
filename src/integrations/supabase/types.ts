@@ -150,6 +150,57 @@ export type Database = {
           },
         ]
       }
+      notificacoes_whatsapp: {
+        Row: {
+          created_at: string
+          distribuidora_id: string
+          id: string
+          mensagem: string
+          pedido_id: string
+          provider_response: Json | null
+          status: string
+          telefone: string
+          tipo: string
+        }
+        Insert: {
+          created_at?: string
+          distribuidora_id: string
+          id?: string
+          mensagem: string
+          pedido_id: string
+          provider_response?: Json | null
+          status?: string
+          telefone: string
+          tipo: string
+        }
+        Update: {
+          created_at?: string
+          distribuidora_id?: string
+          id?: string
+          mensagem?: string
+          pedido_id?: string
+          provider_response?: Json | null
+          status?: string
+          telefone?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notificacoes_whatsapp_distribuidora_id_fkey"
+            columns: ["distribuidora_id"]
+            isOneToOne: false
+            referencedRelation: "distribuidoras"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notificacoes_whatsapp_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pedido_itens: {
         Row: {
           id: string
