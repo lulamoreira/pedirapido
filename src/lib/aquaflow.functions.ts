@@ -56,16 +56,18 @@ export const getDashboard = createServerFn({ method: "GET" })
 // -------- Pedidos list --------
 export const listPedidos = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { status?: string } | undefined) => d ?? {})
+  .inputValidator((d: { status?: string; preOrder?: boolean } | undefined) => d ?? {})
   .handler(async ({ data, context }) => {
     const distId = await getDistId(context.supabase, context.userId);
     if (!distId) return [];
-    let q = context.supabase.from("pedidos").select("id,total,status,created_at,cliente:clientes(nome,telefone,endereco)").eq("distribuidora_id", distId).order("created_at", { ascending: false }).limit(100);
+    let q = context.supabase.from("pedidos").select("id,total,status,created_at,is_pre_order,cliente:clientes(id,nome,telefone,endereco)").eq("distribuidora_id", distId).order("created_at", { ascending: false }).limit(100);
     if (data.status && data.status !== "todos") q = q.eq("status", data.status as never);
+    if (data.preOrder) q = q.eq("is_pre_order", true);
     const { data: pedidos, error } = await q;
     if (error) throw error;
     return pedidos ?? [];
   });
+
 
 // -------- Pedido detail --------
 export const getPedido = createServerFn({ method: "GET" })
