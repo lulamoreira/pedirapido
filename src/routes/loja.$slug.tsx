@@ -450,6 +450,11 @@ function CheckoutModal(p: CheckoutProps) {
   const requestOtpFn = useServerFn(requestOtp);
   const verifyOtpFn = useServerFn(verifyOtp);
 
+  const subtotal = p.cart.reduce((s, i) => s + i.preco * i.quantidade, 0);
+  const total = subtotal + p.taxaEntrega;
+
+
+
   // ---------- OTP ----------
   const [otpEnviado, setOtpEnviado] = useState(false);
   const [codigoInput, setCodigoInput] = useState("");
