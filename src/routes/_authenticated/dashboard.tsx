@@ -36,7 +36,7 @@ function Dashboard() {
 
   const { user } = useSessionUser();
   const clientMaster = isMasterEmail(user?.email);
-  useEffect(() => { if (user?.email) console.log("[Pedirápido] sessão:", user.email, "master?", clientMaster); }, [user?.email, clientMaster]);
+  
   const trialDays = daysUntil(data.distribuidora.trial_expires_at);
   const isFree = data.distribuidora.plano === "free";
   const usoPct = Math.min(100, Math.round((data.totalMes / data.limiteFree) * 100));
