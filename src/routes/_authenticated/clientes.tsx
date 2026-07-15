@@ -19,11 +19,10 @@ function formatPhone(t: string | null | undefined) {
 }
 
 function ClientesPage() {
-  const fetchClientes = useServerFn(listClientes);
   const [search, setSearch] = useState("");
   const { data = [], isLoading } = useQuery({
     queryKey: ["clientes", search],
-    queryFn: () => fetchClientes({ data: { search } }),
+    queryFn: () => listClientes({ data: { search } }),
   });
 
   const total = useMemo(() => data.length, [data]);
