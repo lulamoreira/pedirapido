@@ -418,6 +418,7 @@ type CheckoutProps = {
   isClosed: boolean;
   proximoDia: number | null;
   proximoHorario: string | null;
+  verificacaoExigida: boolean;
   onClose: () => void;
   onUpdateQty: (id: string, delta: number) => void;
   onRemove: (id: string) => void;
