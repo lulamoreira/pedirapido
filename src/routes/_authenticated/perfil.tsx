@@ -52,6 +52,7 @@ function Perfil() {
       <div className="mt-2 space-y-2">
         <MenuLink to="/entregadores" icon={Bike} title="Equipe de entregadores" desc="Motoqueiros, motos e placas" />
         <MenuLink to="/configuracoes" icon={Settings} title="Configurações da loja" desc="Horário, taxa e tempo de entrega" />
+        <MenuLink to="/ajuda" icon={LifeBuoy} title="Central de Ajuda" desc="Tutoriais e dúvidas frequentes" />
         {data?.isAdminMaster && (
           <MenuLink to="/admin" icon={Shield} title="Admin Master" desc="Painel global do SaaS" highlight />
         )}
