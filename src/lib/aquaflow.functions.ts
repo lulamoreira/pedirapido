@@ -153,6 +153,26 @@ export const assignEntregador = createServerFn({ method: "POST" })
 
     if (data.entregadorId) {
       await (context.supabase as any).from("entregadores").update({ status: "em_entrega" }).eq("id", data.entregadorId);
+
+      // WhatsApp: "saiu para entrega"
+      const { data: full } = await context.supabase
+        .from("pedidos")
+        .select("id,distribuidora_id,cliente:clientes(nome,telefone),entregador:entregadores(nome,veiculo_modelo,veiculo_placa)")
+        .eq("id", data.pedidoId).maybeSingle();
+      const f: any = full;
+      if (f?.cliente?.telefone) {
+        const { notifyAndLog } = await import("@/lib/whatsapp.server");
+        await notifyAndLog(context.supabase, {
+          tipo: "rota",
+          pedidoId: f.id,
+          distribuidoraId: f.distribuidora_id,
+          telefone: f.cliente.telefone,
+          clienteNome: f.cliente.nome,
+          entregadorNome: f.entregador?.nome,
+          veiculo: f.entregador?.veiculo_modelo,
+          placa: f.entregador?.veiculo_placa,
+        });
+      }
     }
     return { ok: true };
   });
