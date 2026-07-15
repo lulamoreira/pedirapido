@@ -447,9 +447,86 @@ function CheckoutModal(p: CheckoutProps) {
 
   const findFn = useServerFn(findClientePublico);
   const checkoutFn = useServerFn(checkoutLojaPublica);
+  const requestOtpFn = useServerFn(requestOtp);
+  const verifyOtpFn = useServerFn(verifyOtp);
 
-  const subtotal = p.cart.reduce((s, i) => s + i.preco * i.quantidade, 0);
-  const total = subtotal + p.taxaEntrega;
+  // ---------- OTP ----------
+  const [otpEnviado, setOtpEnviado] = useState(false);
+  const [codigoInput, setCodigoInput] = useState("");
+  const [verificado, setVerificado] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
+  const [enviandoOtp, setEnviandoOtp] = useState(false);
+  const [verificandoOtp, setVerificandoOtp] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+
+  const telefoneDigits = telefone.replace(/\D/g, "");
+  const storageKey = telefoneDigits.length >= 10
+    ? `pedirapido_verif_${p.distribuidoraId}_${telefoneDigits}`
+    : null;
+
+  // Restaura verificação salva no dispositivo (30 dias)
+  useEffect(() => {
+    if (!p.verificacaoExigida) return;
+    if (!storageKey) { setVerificado(false); setToken(null); return; }
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (!raw) { setVerificado(false); setToken(null); return; }
+      const j = JSON.parse(raw) as { token?: string; ts?: number };
+      const trintaDias = 30 * 24 * 60 * 60 * 1000;
+      if (j?.token && j?.ts && Date.now() - j.ts < trintaDias) {
+        setVerificado(true);
+        setToken(j.token);
+      } else {
+        setVerificado(false);
+        setToken(null);
+      }
+    } catch {
+      setVerificado(false);
+      setToken(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storageKey, p.verificacaoExigida]);
+
+  // Cooldown tick
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((c) => Math.max(0, c - 1)), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
+
+  async function enviarOtp() {
+    if (telefoneDigits.length < 10) return toast.error("Informe um telefone válido");
+    setEnviandoOtp(true);
+    try {
+      const r = await requestOtpFn({ data: { distribuidora_id: p.distribuidoraId, telefone } });
+      setOtpEnviado(true);
+      setCooldown(60);
+      if (r?.simulado) {
+        toast.warning("Envio em modo teste — verifique se o WhatsApp da loja está conectado.");
+      } else {
+        toast.success("Código enviado no WhatsApp 📩");
+      }
+    } catch (e: any) {
+      toast.error(e?.message ?? "Não foi possível enviar o código");
+    } finally { setEnviandoOtp(false); }
+  }
+
+  async function verificarOtp() {
+    if (codigoInput.replace(/\D/g, "").length !== 6) return toast.error("Digite os 6 dígitos");
+    setVerificandoOtp(true);
+    try {
+      const r = await verifyOtpFn({ data: { distribuidora_id: p.distribuidoraId, telefone, codigo: codigoInput } });
+      setVerificado(true);
+      setToken(r.token);
+      if (storageKey) {
+        try { localStorage.setItem(storageKey, JSON.stringify({ token: r.token, ts: Date.now() })); } catch { /* ignore */ }
+      }
+      toast.success("Telefone verificado ✅");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Código inválido");
+    } finally { setVerificandoOtp(false); }
+  }
+
 
   async function buscarCliente() {
     const digits = telefone.replace(/\D/g, "");
