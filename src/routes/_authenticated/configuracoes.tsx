@@ -44,7 +44,8 @@ function ConfigPage() {
     if (data?.distribuidora) {
       const d = data.distribuidora as Record<string, unknown>;
       setForm({
-        nome: String(d.nome ?? ""),
+        nome_fantasia: String(d.nome_fantasia ?? d.nome ?? ""),
+        razao_social: String(d.razao_social ?? ""),
         telefone: String(d.telefone ?? ""),
         cnpj: d.cnpj ? maskCnpj(String(d.cnpj)) : "",
         horario_abertura: String(d.horario_abertura ?? "08:00"),
