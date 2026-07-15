@@ -104,6 +104,8 @@ export const checkoutLojaPublica = createServerFn({ method: "POST" })
     forma_pagamento: "pix" | "cartao" | "dinheiro";
     troco_para?: number | null;
     observacoes?: string;
+    is_pre_order?: boolean;
+
   }) => z.object({
     distribuidora_id: z.string().uuid(),
     cliente: z.object({
