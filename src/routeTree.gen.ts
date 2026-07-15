@@ -13,6 +13,7 @@ import { Route as PlanoRouteImport } from './routes/plano'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PedidoIdRouteImport } from './routes/pedido.$id'
 import { Route as LojaIdRouteImport } from './routes/loja.$id'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as AuthenticatedPedidosRouteImport } from './routes/_authenticated/pedidos'
@@ -43,6 +44,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PedidoIdRoute = PedidoIdRouteImport.update({
+  id: '/pedido/$id',
+  path: '/pedido/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LojaIdRoute = LojaIdRouteImport.update({
@@ -123,6 +129,7 @@ export interface FileRoutesByFullPath {
   '/pedidos': typeof AuthenticatedPedidosRouteWithChildren
   '/perfil': typeof AuthenticatedPerfilRoute
   '/loja/$id': typeof LojaIdRoute
+  '/pedido/$id': typeof PedidoIdRoute
   '/pedidos/$id': typeof AuthenticatedPedidosIdRoute
   '/api/public/webhook/whatsapp': typeof ApiPublicWebhookWhatsappRoute
 }
@@ -140,6 +147,7 @@ export interface FileRoutesByTo {
   '/pedidos': typeof AuthenticatedPedidosRouteWithChildren
   '/perfil': typeof AuthenticatedPerfilRoute
   '/loja/$id': typeof LojaIdRoute
+  '/pedido/$id': typeof PedidoIdRoute
   '/pedidos/$id': typeof AuthenticatedPedidosIdRoute
   '/api/public/webhook/whatsapp': typeof ApiPublicWebhookWhatsappRoute
 }
@@ -159,6 +167,7 @@ export interface FileRoutesById {
   '/_authenticated/pedidos': typeof AuthenticatedPedidosRouteWithChildren
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/loja/$id': typeof LojaIdRoute
+  '/pedido/$id': typeof PedidoIdRoute
   '/_authenticated/pedidos/$id': typeof AuthenticatedPedidosIdRoute
   '/api/public/webhook/whatsapp': typeof ApiPublicWebhookWhatsappRoute
 }
@@ -178,6 +187,7 @@ export interface FileRouteTypes {
     | '/pedidos'
     | '/perfil'
     | '/loja/$id'
+    | '/pedido/$id'
     | '/pedidos/$id'
     | '/api/public/webhook/whatsapp'
   fileRoutesByTo: FileRoutesByTo
@@ -195,6 +205,7 @@ export interface FileRouteTypes {
     | '/pedidos'
     | '/perfil'
     | '/loja/$id'
+    | '/pedido/$id'
     | '/pedidos/$id'
     | '/api/public/webhook/whatsapp'
   id:
@@ -213,6 +224,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pedidos'
     | '/_authenticated/perfil'
     | '/loja/$id'
+    | '/pedido/$id'
     | '/_authenticated/pedidos/$id'
     | '/api/public/webhook/whatsapp'
   fileRoutesById: FileRoutesById
@@ -223,6 +235,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   PlanoRoute: typeof PlanoRoute
   LojaIdRoute: typeof LojaIdRoute
+  PedidoIdRoute: typeof PedidoIdRoute
   ApiPublicWebhookWhatsappRoute: typeof ApiPublicWebhookWhatsappRoute
 }
 
@@ -254,6 +267,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pedido/$id': {
+      id: '/pedido/$id'
+      path: '/pedido/$id'
+      fullPath: '/pedido/$id'
+      preLoaderRoute: typeof PedidoIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/loja/$id': {
@@ -387,6 +407,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   PlanoRoute: PlanoRoute,
   LojaIdRoute: LojaIdRoute,
+  PedidoIdRoute: PedidoIdRoute,
   ApiPublicWebhookWhatsappRoute: ApiPublicWebhookWhatsappRoute,
 }
 export const routeTree = rootRouteImport
