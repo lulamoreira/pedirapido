@@ -219,6 +219,9 @@ function LojaPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-black">{p.nome}</p>
+                    {formatVolume(p.volume_valor, p.volume_unidade) && (
+                      <p className="mt-0.5 text-[11px] font-semibold text-muted-foreground">{formatVolume(p.volume_valor, p.volume_unidade)}</p>
+                    )}
                     {p.descricao && (
                       <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{p.descricao}</p>
                     )}
