@@ -220,7 +220,11 @@ export const claimEntregador = createServerFn({ method: "POST" })
     const { error: upErr } = await supabaseAdmin.from("entregadores").update({ user_id: context.userId }).eq("id", match.id);
     if (upErr) throw upErr;
     // Garante role 'entregador'
-    await supabaseAdmin.from("user_roles").upsert({ user_id: context.userId, role: "entregador", distribuidora_id: match.distribuidora_id }, { onConflict: "user_id,role" });
+    // Garante role 'entregador' (unique em user_id,role,distribuidora_id)
+    await supabaseAdmin.from("user_roles").upsert(
+      { user_id: context.userId, role: "entregador", distribuidora_id: match.distribuidora_id },
+      { onConflict: "user_id,role,distribuidora_id" }
+    );
     return { ok: true };
   });
 
