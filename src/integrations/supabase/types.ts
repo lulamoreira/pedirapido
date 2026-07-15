@@ -56,6 +56,8 @@ export type Database = {
         Row: {
           created_at: string
           email: string
+          horario_abertura: string
+          horario_fechamento: string
           id: string
           nome: string
           owner_user_id: string
@@ -63,12 +65,15 @@ export type Database = {
           status_assinatura: Database["public"]["Enums"]["status_assinatura_tipo"]
           taxa_entrega_padrao: number
           telefone: string | null
+          tempo_estimado_min: number
           trial_expires_at: string
           updated_at: string
         }
         Insert: {
           created_at?: string
           email: string
+          horario_abertura?: string
+          horario_fechamento?: string
           id?: string
           nome: string
           owner_user_id: string
@@ -76,12 +81,15 @@ export type Database = {
           status_assinatura?: Database["public"]["Enums"]["status_assinatura_tipo"]
           taxa_entrega_padrao?: number
           telefone?: string | null
+          tempo_estimado_min?: number
           trial_expires_at?: string
           updated_at?: string
         }
         Update: {
           created_at?: string
           email?: string
+          horario_abertura?: string
+          horario_fechamento?: string
           id?: string
           nome?: string
           owner_user_id?: string
@@ -89,10 +97,55 @@ export type Database = {
           status_assinatura?: Database["public"]["Enums"]["status_assinatura_tipo"]
           taxa_entrega_padrao?: number
           telefone?: string | null
+          tempo_estimado_min?: number
           trial_expires_at?: string
           updated_at?: string
         }
         Relationships: []
+      }
+      entregadores: {
+        Row: {
+          created_at: string
+          distribuidora_id: string
+          id: string
+          nome: string
+          status: Database["public"]["Enums"]["entregador_status"]
+          telefone: string | null
+          updated_at: string
+          veiculo_modelo: string | null
+          veiculo_placa: string | null
+        }
+        Insert: {
+          created_at?: string
+          distribuidora_id: string
+          id?: string
+          nome: string
+          status?: Database["public"]["Enums"]["entregador_status"]
+          telefone?: string | null
+          updated_at?: string
+          veiculo_modelo?: string | null
+          veiculo_placa?: string | null
+        }
+        Update: {
+          created_at?: string
+          distribuidora_id?: string
+          id?: string
+          nome?: string
+          status?: Database["public"]["Enums"]["entregador_status"]
+          telefone?: string | null
+          updated_at?: string
+          veiculo_modelo?: string | null
+          veiculo_placa?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entregadores_distribuidora_id_fkey"
+            columns: ["distribuidora_id"]
+            isOneToOne: false
+            referencedRelation: "distribuidoras"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pedido_itens: {
         Row: {
@@ -144,6 +197,7 @@ export type Database = {
           distribuidora_id: string
           entregador_id: string | null
           entregue_at: string | null
+          forma_pagamento: Database["public"]["Enums"]["forma_pagamento"]
           id: string
           observacoes: string | null
           pago_at: string | null
@@ -159,6 +213,7 @@ export type Database = {
           distribuidora_id: string
           entregador_id?: string | null
           entregue_at?: string | null
+          forma_pagamento?: Database["public"]["Enums"]["forma_pagamento"]
           id?: string
           observacoes?: string | null
           pago_at?: string | null
@@ -174,6 +229,7 @@ export type Database = {
           distribuidora_id?: string
           entregador_id?: string | null
           entregue_at?: string | null
+          forma_pagamento?: Database["public"]["Enums"]["forma_pagamento"]
           id?: string
           observacoes?: string | null
           pago_at?: string | null
@@ -291,6 +347,8 @@ export type Database = {
     }
     Enums: {
       app_role: "admin_master" | "distribuidora" | "entregador"
+      entregador_status: "disponivel" | "em_entrega" | "inativo"
+      forma_pagamento: "pix" | "cartao" | "dinheiro"
       pedido_status:
         | "pendente"
         | "preparo"
@@ -428,6 +486,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin_master", "distribuidora", "entregador"],
+      entregador_status: ["disponivel", "em_entrega", "inativo"],
+      forma_pagamento: ["pix", "cartao", "dinheiro"],
       pedido_status: [
         "pendente",
         "preparo",
