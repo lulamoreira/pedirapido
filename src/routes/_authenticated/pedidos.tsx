@@ -17,15 +17,19 @@ const FILTROS = [
 ] as const;
 
 export const Route = createFileRoute("/_authenticated/pedidos")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    preOrder: s.preOrder === true || s.preOrder === "true" ? true : undefined,
+  }),
   component: PedidosList,
 });
 
 function PedidosList() {
+  const { preOrder } = Route.useSearch();
   const [filtro, setFiltro] = useState<string>("todos");
   const [busca, setBusca] = useState("");
   const { data = [], isLoading } = useQuery({
-    queryKey: ["pedidos", filtro],
-    queryFn: () => listPedidos({ data: { status: filtro } }),
+    queryKey: ["pedidos", filtro, preOrder],
+    queryFn: () => listPedidos({ data: { status: filtro, preOrder } }),
   });
 
   const filtrados = data.filter((p) => {
@@ -33,6 +37,7 @@ function PedidosList() {
     const q = busca.toLowerCase();
     return p.cliente?.nome?.toLowerCase().includes(q) || p.cliente?.telefone?.includes(busca);
   });
+
 
   return (
     <div className="p-4">
