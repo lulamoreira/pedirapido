@@ -127,11 +127,12 @@ export const findClientePublico = createServerFn({ method: "POST" })
     if (digits.length < 10) return null;
     const { data: cli } = await supabaseAdmin
       .from("clientes")
-      .select("id,nome,telefone,endereco,cep")
+      .select("id,nome,telefone,endereco,cep,complemento")
       .eq("distribuidora_id", data.distribuidora_id)
       .eq("telefone", digits)
       .maybeSingle();
     return cli ?? null;
+
   });
 
 // -------- Checkout público --------
