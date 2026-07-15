@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { generatePixCode } from "@/lib/pix";
+import { normalizeProperName, normalizeSentence } from "@/lib/text-normalize";
+
+
 
 const schema = z.object({
   distribuidora_id: z.string().uuid(),
@@ -42,20 +45,23 @@ export const Route = createFileRoute("/api/public/webhook/whatsapp")({
           const { data: existing } = await supabaseAdmin.from("clientes")
             .select("id").eq("distribuidora_id", dist.id).eq("telefone", telDigits).maybeSingle();
           let clienteId = existing?.id;
+          const nomeNorm = normalizeProperName(input.cliente.nome);
+          const endNorm = input.cliente.endereco ? normalizeSentence(input.cliente.endereco) : null;
           if (!clienteId) {
             const { data: novo, error } = await supabaseAdmin.from("clientes").insert({
               distribuidora_id: dist.id,
-              nome: input.cliente.nome,
+              nome: nomeNorm,
               telefone: telDigits,
-              endereco: input.cliente.endereco ?? null,
+              endereco: endNorm,
             }).select("id").single();
             if (error) return json({ error: error.message }, 400);
             clienteId = novo.id;
           } else if (input.cliente.endereco || input.cliente.nome) {
             await supabaseAdmin.from("clientes").update({
-              nome: input.cliente.nome, endereco: input.cliente.endereco ?? null,
+              nome: nomeNorm, endereco: endNorm,
             }).eq("id", clienteId);
           }
+
 
           // Produtos + subtotal
           const ids = input.itens.map(i => i.produto_id);

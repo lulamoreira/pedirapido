@@ -1,6 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { generatePixCode } from "@/lib/pix";
+import { normalizeProperName, normalizeSentence } from "@/lib/text-normalize";
+
+
 
 // -------- Carregar loja pública (distribuidora + catálogo) --------
 // Aceita slug (novo) ou UUID (legado) no mesmo parâmetro `id`.
@@ -21,7 +24,7 @@ export const getLojaPublica = createServerFn({ method: "GET" })
 
     const { data: prods } = await supabaseAdmin
       .from("produtos")
-      .select("id,nome,descricao,preco,categoria,estoque,volume_valor,volume_unidade")
+      .select("id,nome,descricao,preco,categoria,estoque,volume_valor,volume_unidade,marca,tipo_embalagem")
       .eq("distribuidora_id", dist.id)
       .eq("ativo", true)
       .order("categoria")
@@ -103,23 +106,26 @@ export const checkoutLojaPublica = createServerFn({ method: "POST" })
       .from("clientes").select("id")
       .eq("distribuidora_id", dist.id).eq("telefone", digits).maybeSingle();
     let clienteId = existing?.id as string | undefined;
+    const nomeNorm = normalizeProperName(data.cliente.nome);
+    const endNorm = normalizeSentence(data.cliente.endereco);
     if (clienteId) {
       await supabaseAdmin.from("clientes").update({
-        nome: data.cliente.nome,
-        endereco: data.cliente.endereco,
+        nome: nomeNorm,
+        endereco: endNorm,
         cep: data.cliente.cep ?? null,
       }).eq("id", clienteId);
     } else {
       const { data: novo, error: eCli } = await supabaseAdmin.from("clientes").insert({
         distribuidora_id: dist.id,
-        nome: data.cliente.nome,
+        nome: nomeNorm,
         telefone: digits,
-        endereco: data.cliente.endereco,
+        endereco: endNorm,
         cep: data.cliente.cep ?? null,
       }).select("id").single();
       if (eCli) throw eCli;
       clienteId = novo.id;
     }
+
 
     // Produtos + validação categoria por plano
     const ids = data.itens.map(i => i.produto_id);
@@ -189,7 +195,7 @@ export const getPedidoPublico = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: pedido, error } = await supabaseAdmin
       .from("pedidos")
-      .select("id,status,total,subtotal,taxa_entrega,forma_pagamento,codigo_pix,created_at,pago_at,entregue_at,distribuidora_id,distribuidora:distribuidoras(nome,nome_fantasia,razao_social,cnpj,tempo_estimado_min,telefone,logo_url),itens:pedido_itens(quantidade,preco_unit,subtotal,produto:produtos(nome,volume_valor,volume_unidade)),entregador:entregadores(nome,veiculo_modelo,veiculo_placa)")
+      .select("id,status,total,subtotal,taxa_entrega,forma_pagamento,codigo_pix,created_at,pago_at,entregue_at,distribuidora_id,distribuidora:distribuidoras(nome,nome_fantasia,razao_social,cnpj,tempo_estimado_min,telefone,logo_url),itens:pedido_itens(quantidade,preco_unit,subtotal,produto:produtos(nome,volume_valor,volume_unidade,marca,tipo_embalagem)),entregador:entregadores(nome,veiculo_modelo,veiculo_placa)")
       .eq("id", data.id)
       .maybeSingle();
     if (error) throw error;

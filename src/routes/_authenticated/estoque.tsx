@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { listProdutos, upsertProduto, deleteProduto, getPlano } from "@/lib/aquaflow.functions";
-import { formatBRL, formatVolume } from "@/lib/format";
+import { formatBRL } from "@/lib/format";
+import { formatProdutoLinha } from "@/lib/text-normalize";
 import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, Lock, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
@@ -12,8 +13,10 @@ export const Route = createFileRoute("/_authenticated/estoque")({
 
 type Categoria = "agua" | "bebidas" | "descartaveis" | "petiscos" | "outros";
 type Unidade = "L" | "ml";
-type FormState = { id?: string; nome: string; preco: string; estoque: string; estoque_minimo: string; categoria: Categoria; volume_valor: string; volume_unidade: Unidade };
-const empty: FormState = { nome: "", preco: "", estoque: "0", estoque_minimo: "5", categoria: "agua", volume_valor: "", volume_unidade: "L" };
+type FormState = { id?: string; nome: string; preco: string; estoque: string; estoque_minimo: string; categoria: Categoria; volume_valor: string; volume_unidade: Unidade; marca: string; tipo_embalagem: string; descricao: string };
+const empty: FormState = { nome: "", preco: "", estoque: "0", estoque_minimo: "5", categoria: "agua", volume_valor: "", volume_unidade: "L", marca: "", tipo_embalagem: "", descricao: "" };
+
+const TIPOS_EMBALAGEM = ["Galão", "Garrafa", "Copo", "Lata", "Fardo", "Caixa", "Outro"];
 
 const CATEGORIAS: { value: Categoria; label: string; emoji: string; onlyBusiness: boolean }[] = [
   { value: "agua", label: "Água", emoji: "💧", onlyBusiness: false },
@@ -22,6 +25,7 @@ const CATEGORIAS: { value: Categoria; label: string; emoji: string; onlyBusiness
   { value: "petiscos", label: "Petiscos / Salgadinhos", emoji: "🍿", onlyBusiness: true },
   { value: "outros", label: "Outros (Gelo, Carvão…)", emoji: "🧊", onlyBusiness: true },
 ];
+
 
 function EstoquePage() {
   const qc = useQueryClient();
@@ -38,11 +42,15 @@ function EstoquePage() {
         categoria: f.categoria,
         volume_valor: f.volume_valor ? Number(String(f.volume_valor).replace(",", ".")) : null,
         volume_unidade: f.volume_valor ? f.volume_unidade : null,
+        marca: f.marca.trim() || null,
+        tipo_embalagem: f.tipo_embalagem.trim() || null,
+        descricao: f.descricao.trim() || null,
       },
     }),
     onSuccess: () => { toast.success("Produto salvo!"); qc.invalidateQueries({ queryKey: ["produtos"] }); qc.invalidateQueries({ queryKey: ["dashboard"] }); setEditing(null); },
     onError: (e: Error) => toast.error(e.message),
   });
+
 
   const remove = useMutation({
     mutationFn: (id: string) => deleteProduto({ data: { id } }),
@@ -79,8 +87,8 @@ function EstoquePage() {
                     <span className="text-lg">{cat?.emoji ?? "💧"}</span>
                     <div className="truncate text-sm font-bold">{p.nome}</div>
                   </div>
-                  {formatVolume(p.volume_valor, p.volume_unidade) && (
-                    <div className="text-[11px] font-semibold text-muted-foreground">{formatVolume(p.volume_valor, p.volume_unidade)}</div>
+                  {formatProdutoLinha(p) && (
+                    <div className="text-[11px] font-semibold text-muted-foreground">{formatProdutoLinha(p)}</div>
                   )}
                   <div className="text-xs text-muted-foreground">{cat?.label} · {formatBRL(p.preco)}</div>
                   <div className={"mt-1 flex items-center gap-1 text-xs font-semibold " + (baixo ? "text-status-preparing" : "text-muted-foreground")}>
@@ -89,7 +97,8 @@ function EstoquePage() {
                   </div>
                 </div>
                 <div className="flex gap-1">
-                  <button onClick={() => setEditing({ id: p.id, nome: p.nome, preco: String(p.preco), estoque: String(p.estoque), estoque_minimo: String(p.estoque_minimo), categoria: (p.categoria ?? "agua") as Categoria, volume_valor: p.volume_valor != null ? String(p.volume_valor).replace(".", ",") : "", volume_unidade: (p.volume_unidade === "ml" ? "ml" : "L") as Unidade })} className="grid h-9 w-9 place-items-center rounded-xl bg-secondary" aria-label="Editar">
+                  <button onClick={() => setEditing({ id: p.id, nome: p.nome, preco: String(p.preco), estoque: String(p.estoque), estoque_minimo: String(p.estoque_minimo), categoria: (p.categoria ?? "agua") as Categoria, volume_valor: p.volume_valor != null ? String(p.volume_valor).replace(".", ",") : "", volume_unidade: (p.volume_unidade === "ml" ? "ml" : "L") as Unidade, marca: p.marca ?? "", tipo_embalagem: p.tipo_embalagem ?? "", descricao: p.descricao ?? "" })} className="grid h-9 w-9 place-items-center rounded-xl bg-secondary" aria-label="Editar">
+
                     <Pencil className="h-4 w-4" />
                   </button>
                   <button onClick={() => confirm("Remover produto?") && remove.mutate(p.id)} className="grid h-9 w-9 place-items-center rounded-xl bg-destructive/10 text-destructive" aria-label="Remover">
@@ -187,7 +196,35 @@ function EstoquePage() {
                 </label>
               </div>
 
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Marca" value={editing.marca} onChange={(v) => setEditing({ ...editing, marca: v })} />
+                <label className="block">
+                  <span className="mb-1 block text-xs font-semibold text-muted-foreground">Tipo de embalagem</span>
+                  <input
+                    list="tipos-embalagem"
+                    value={editing.tipo_embalagem}
+                    onChange={(e) => setEditing({ ...editing, tipo_embalagem: e.target.value })}
+                    placeholder="Galão, Garrafa…"
+                    className="w-full rounded-xl border border-input bg-card px-4 py-3 text-sm outline-none focus:border-primary"
+                  />
+                  <datalist id="tipos-embalagem">
+                    {TIPOS_EMBALAGEM.map((t) => <option key={t} value={t} />)}
+                  </datalist>
+                </label>
+              </div>
+
+              <label className="block">
+                <span className="mb-1 block text-xs font-semibold text-muted-foreground">Descrição (opcional)</span>
+                <textarea
+                  value={editing.descricao}
+                  onChange={(e) => setEditing({ ...editing, descricao: e.target.value })}
+                  rows={2}
+                  className="w-full rounded-xl border border-input bg-card px-4 py-3 text-sm outline-none focus:border-primary resize-none"
+                />
+              </label>
+
               <Field label="Alerta em (un)" value={editing.estoque_minimo} type="number" onChange={(v) => setEditing({ ...editing, estoque_minimo: v })} />
+
             </div>
             <button
               disabled={!editing.nome || !editing.preco || save.isPending}

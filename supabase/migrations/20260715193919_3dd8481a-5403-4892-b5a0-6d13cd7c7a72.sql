@@ -1,0 +1,1 @@
+ALTER TABLE public.produtos ADD COLUMN IF NOT EXISTS marca TEXT, ADD COLUMN IF NOT EXISTS tipo_embalagem TEXT;

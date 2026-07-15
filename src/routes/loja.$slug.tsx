@@ -2,7 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
-import { formatVolume, displayNomeLoja } from "@/lib/format";
+import { displayNomeLoja } from "@/lib/format";
+import { formatProdutoLinha } from "@/lib/text-normalize";
+
 import { maskCnpj } from "@/lib/br-utils";
 import { toast } from "sonner";
 import {
@@ -129,46 +131,72 @@ function LojaPage() {
 
   return (
     <div className="min-h-screen bg-[#F7F9FC] pb-32">
-      {/* Header */}
+      {/* Hero com logo em destaque */}
+      <section className="relative overflow-hidden gradient-primary text-primary-foreground">
+        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_20%_20%,white,transparent_40%),radial-gradient(circle_at_80%_60%,white,transparent_35%)]" />
+        <div className="relative mx-auto max-w-lg px-4 pt-8 pb-6 flex flex-col items-center text-center">
+          <div className="grid h-28 w-28 md:h-32 md:w-32 place-items-center rounded-3xl bg-white shadow-float overflow-hidden aspect-square ring-4 ring-white/30">
+            {d.logo_url ? (
+              <img src={d.logo_url} alt={nomeLoja} className="h-full w-full object-contain" />
+            ) : (
+              <div className="grid h-full w-full place-items-center gradient-primary text-primary-foreground">
+                <Droplet className="h-10 w-10" />
+              </div>
+            )}
+          </div>
+          <h1 className="mt-3 text-2xl font-black tracking-tight">{nomeLoja}</h1>
+          <div className="mt-1.5 flex items-center gap-2 text-xs">
+            <span className={cn(
+              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-bold",
+              d.aberto ? "bg-emerald-500/90 text-white" : "bg-red-500/90 text-white"
+            )}>
+              <span className="h-1.5 w-1.5 rounded-full bg-white" />
+              {d.aberto ? "Aberto agora" : "Fechado"}
+            </span>
+            <span className="flex items-center gap-1 text-white/90">
+              <Clock className="h-3 w-3" /> ~{d.tempo_estimado_min} min
+            </span>
+          </div>
+          {(d.logradouro || d.cidade) && (
+            <p className="mt-2 flex items-start gap-1 text-[11px] text-white/85 max-w-xs">
+              <MapPin className="h-3 w-3 mt-0.5 shrink-0" />
+              <span>
+                {[
+                  d.logradouro && d.numero ? `${d.logradouro}, ${d.numero}` : d.logradouro,
+                  d.bairro,
+                  d.cidade && d.uf ? `${d.cidade}/${d.uf}` : d.cidade,
+                ].filter(Boolean).join(" · ")}
+              </span>
+            </p>
+          )}
+        </div>
+      </section>
+
+      {/* Header sticky compacto */}
       <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-border">
-        <div className="mx-auto max-w-lg px-4 py-4">
+        <div className="mx-auto max-w-lg px-4 py-3">
           <div className="flex items-center gap-3">
-            <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white shadow-soft overflow-hidden aspect-square">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white shadow-soft overflow-hidden aspect-square">
               {d.logo_url ? (
                 <img src={d.logo_url} alt={nomeLoja} className="h-full w-full object-contain" />
               ) : (
                 <div className="grid h-full w-full place-items-center gradient-primary text-primary-foreground">
-                  <Droplet className="h-5 w-5" />
+                  <Droplet className="h-4 w-4" />
                 </div>
               )}
             </div>
+
             <div className="min-w-0 flex-1">
-              <h1 className="truncate text-lg font-black tracking-tight">{nomeLoja}</h1>
-              <div className="mt-0.5 flex items-center gap-2 text-xs">
-                <span className={cn(
-                  "inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-bold",
-                  d.aberto ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
-                )}>
-                  <span className={cn("h-1.5 w-1.5 rounded-full", d.aberto ? "bg-emerald-500" : "bg-red-500")} />
-                  {d.aberto ? "Aberto agora" : "Fechado"}
-                </span>
-                <span className="flex items-center gap-1 text-muted-foreground">
-                  <Clock className="h-3 w-3" /> ~{d.tempo_estimado_min} min
-                </span>
-              </div>
-              {(d.logradouro || d.cidade) && (
-                <p className="mt-1 flex items-start gap-1 text-[11px] text-muted-foreground">
-                  <MapPin className="h-3 w-3 mt-0.5 shrink-0" />
-                  <span className="truncate">
-                    {[
-                      d.logradouro && d.numero ? `${d.logradouro}, ${d.numero}` : d.logradouro,
-                      d.bairro,
-                      d.cidade && d.uf ? `${d.cidade}/${d.uf}` : d.cidade,
-                    ].filter(Boolean).join(" · ")}
-                  </span>
-                </p>
-              )}
+              <h2 className="truncate text-sm font-black tracking-tight">{nomeLoja}</h2>
+              <span className={cn(
+                "mt-0.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold",
+                d.aberto ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
+              )}>
+                <span className={cn("h-1.5 w-1.5 rounded-full", d.aberto ? "bg-emerald-500" : "bg-red-500")} />
+                {d.aberto ? "Aberto" : "Fechado"}
+              </span>
             </div>
+
           </div>
 
 
@@ -219,9 +247,10 @@ function LojaPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-black">{p.nome}</p>
-                    {formatVolume(p.volume_valor, p.volume_unidade) && (
-                      <p className="mt-0.5 text-[11px] font-semibold text-muted-foreground">{formatVolume(p.volume_valor, p.volume_unidade)}</p>
+                    {formatProdutoLinha(p) && (
+                      <p className="mt-0.5 text-[11px] font-semibold text-muted-foreground">{formatProdutoLinha(p)}</p>
                     )}
+
                     {p.descricao && (
                       <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{p.descricao}</p>
                     )}

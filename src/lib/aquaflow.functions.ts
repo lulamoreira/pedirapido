@@ -2,6 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { generatePixCode } from "@/lib/pix";
+import { normalizeProperName, normalizeSentence } from "@/lib/text-normalize";
+
 
 const MASTER_EMAILS = ["lula1973@gmail.com", "lula1973@gmail.com.br"];
 
@@ -189,7 +191,7 @@ export const listProdutos = createServerFn({ method: "GET" })
 
 export const upsertProduto = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { id?: string; nome: string; preco: number; estoque: number; estoque_minimo: number; categoria: "agua" | "bebidas" | "descartaveis" | "petiscos" | "outros"; volume_valor?: number | null; volume_unidade?: "L" | "ml" | null }) =>
+  .inputValidator((d: { id?: string; nome: string; preco: number; estoque: number; estoque_minimo: number; categoria: "agua" | "bebidas" | "descartaveis" | "petiscos" | "outros"; volume_valor?: number | null; volume_unidade?: "L" | "ml" | null; marca?: string | null; tipo_embalagem?: string | null; descricao?: string | null }) =>
     z.object({
       id: z.string().uuid().optional(),
       nome: z.string().min(1).max(80),
@@ -199,6 +201,9 @@ export const upsertProduto = createServerFn({ method: "POST" })
       categoria: z.enum(["agua", "bebidas", "descartaveis", "petiscos", "outros"]),
       volume_valor: z.number().positive().max(100000).nullish(),
       volume_unidade: z.enum(["L", "ml"]).nullish(),
+      marca: z.string().max(80).nullish(),
+      tipo_embalagem: z.string().max(60).nullish(),
+      descricao: z.string().max(300).nullish(),
     }).parse(d))
   .handler(async ({ data, context }) => {
     const distId = await getDistId(context.supabase, context.userId);
@@ -209,9 +214,13 @@ export const upsertProduto = createServerFn({ method: "POST" })
       throw new Error("Categoria disponível apenas no plano Business. Faça upgrade em /plano.");
     }
     const payload: any = {
-      nome: data.nome, preco: data.preco, estoque: data.estoque, estoque_minimo: data.estoque_minimo, categoria: data.categoria,
+      nome: normalizeSentence(data.nome),
+      preco: data.preco, estoque: data.estoque, estoque_minimo: data.estoque_minimo, categoria: data.categoria,
       volume_valor: data.volume_valor ?? null,
       volume_unidade: data.volume_valor ? (data.volume_unidade ?? "L") : null,
+      marca: data.marca ? normalizeSentence(data.marca) : null,
+      tipo_embalagem: data.tipo_embalagem ? normalizeSentence(data.tipo_embalagem) : null,
+      descricao: data.descricao ? normalizeSentence(data.descricao) : null,
     };
     if (data.id) {
       const { error } = await context.supabase.from("produtos").update(payload).eq("id", data.id);
@@ -222,6 +231,7 @@ export const upsertProduto = createServerFn({ method: "POST" })
     }
     return { ok: true };
   });
+
 
 export const deleteProduto = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -315,10 +325,13 @@ export const upsertEntregador = createServerFn({ method: "POST" })
     const distId = await getDistId(context.supabase, context.userId);
     if (!distId) throw new Error("Distribuidora não encontrada");
     const payload: any = {
-      nome: data.nome, telefone: data.telefone ?? null,
-      veiculo_modelo: data.veiculo_modelo ?? null, veiculo_placa: data.veiculo_placa ?? null,
+      nome: normalizeProperName(data.nome),
+      telefone: data.telefone ?? null,
+      veiculo_modelo: data.veiculo_modelo ? normalizeSentence(data.veiculo_modelo) : null,
+      veiculo_placa: data.veiculo_placa ? String(data.veiculo_placa).toUpperCase() : null,
       status: data.status,
     };
+
     if (data.id) {
       const { error } = await (context.supabase as any).from("entregadores").update(payload).eq("id", data.id);
       if (error) throw error;
@@ -379,10 +392,14 @@ export const updateDistribuidoraConfig = createServerFn({ method: "POST" })
       horario_abertura: data.horario_abertura, horario_fechamento: data.horario_fechamento,
       taxa_entrega_padrao: data.taxa_entrega_padrao, tempo_estimado_min: data.tempo_estimado_min,
       cnpj: data.cnpj ?? null,
-      cep: data.cep ?? null, logradouro: data.logradouro ?? null, numero: data.numero ?? null,
-      complemento: data.complemento ?? null, bairro: data.bairro ?? null,
+      cep: data.cep ?? null,
+      logradouro: data.logradouro ? normalizeSentence(data.logradouro) : null,
+      numero: data.numero ?? null,
+      complemento: data.complemento ? normalizeSentence(data.complemento) : null,
+      bairro: data.bairro ? normalizeSentence(data.bairro) : null,
       cidade: data.cidade ?? null, uf: data.uf ?? null,
     };
+
     if (data.logo_url !== undefined) payload.logo_url = data.logo_url;
 
     // Slug: validar unicidade se enviado
@@ -484,14 +501,15 @@ export const createCliente = createServerFn({ method: "POST" })
 
     const { data: novo, error } = await context.supabase.from("clientes").insert({
       distribuidora_id: distId,
-      nome: data.nome.trim(),
+      nome: normalizeProperName(data.nome),
       telefone: digits,
-      endereco: data.endereco.trim(),
+      endereco: normalizeSentence(data.endereco),
       cep: data.cep?.trim() || null,
     }).select("*").single();
     if (error) throw error;
     return novo;
   });
+
 
 
 
@@ -534,21 +552,24 @@ export const createManualPedido = createServerFn({ method: "POST" })
     const { data: existing } = await supabase.from("clientes").select("id")
       .eq("distribuidora_id", dist.id).eq("telefone", telDigits).maybeSingle();
     let clienteId = existing?.id as string | undefined;
+    const clienteNomeNorm = normalizeProperName(data.cliente.nome);
+    const clienteEndNorm = data.cliente.endereco ? normalizeSentence(data.cliente.endereco) : null;
     if (clienteId) {
       await supabase.from("clientes").update({
-        nome: data.cliente.nome,
-        endereco: data.cliente.endereco ?? null,
+        nome: clienteNomeNorm,
+        endereco: clienteEndNorm,
       }).eq("id", clienteId);
     } else {
       const { data: novo, error: errCli } = await supabase.from("clientes").insert({
         distribuidora_id: dist.id,
-        nome: data.cliente.nome,
+        nome: clienteNomeNorm,
         telefone: telDigits,
-        endereco: data.cliente.endereco ?? null,
+        endereco: clienteEndNorm,
       }).select("id").single();
       if (errCli) throw errCli;
       clienteId = novo.id;
     }
+
 
     // Produtos & subtotal
     const ids = data.itens.map(i => i.produto_id);
