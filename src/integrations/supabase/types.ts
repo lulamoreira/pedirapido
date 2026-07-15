@@ -112,6 +112,7 @@ export type Database = {
           status: Database["public"]["Enums"]["entregador_status"]
           telefone: string | null
           updated_at: string
+          user_id: string | null
           veiculo_modelo: string | null
           veiculo_placa: string | null
         }
@@ -123,6 +124,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["entregador_status"]
           telefone?: string | null
           updated_at?: string
+          user_id?: string | null
           veiculo_modelo?: string | null
           veiculo_placa?: string | null
         }
@@ -134,6 +136,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["entregador_status"]
           telefone?: string | null
           updated_at?: string
+          user_id?: string | null
           veiculo_modelo?: string | null
           veiculo_placa?: string | null
         }

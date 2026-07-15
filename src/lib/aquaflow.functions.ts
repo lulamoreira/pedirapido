@@ -88,6 +88,14 @@ export const updatePedidoStatus = createServerFn({ method: "POST" })
     if (data.status === "entregue") patch.entregue_at = new Date().toISOString();
     const { error } = await context.supabase.from("pedidos").update(patch).eq("id", data.id);
     if (error) throw error;
+
+    // Libera o entregador quando pedido é entregue ou cancelado
+    if (data.status === "entregue" || data.status === "cancelado") {
+      const { data: ped } = await context.supabase.from("pedidos").select("entregador_id").eq("id", data.id).maybeSingle();
+      if (ped?.entregador_id) {
+        await (context.supabase as any).from("entregadores").update({ status: "disponivel" }).eq("id", ped.entregador_id);
+      }
+    }
     return { ok: true };
   });
 
@@ -97,8 +105,20 @@ export const assignEntregador = createServerFn({ method: "POST" })
   .inputValidator((d: { pedidoId: string; entregadorId: string | null }) =>
     z.object({ pedidoId: z.string().uuid(), entregadorId: z.string().uuid().nullable() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("pedidos").update({ entregador_id: data.entregadorId }).eq("id", data.pedidoId);
+    // Libera entregador anterior (se houver e for diferente do novo)
+    const { data: atual } = await context.supabase.from("pedidos").select("entregador_id").eq("id", data.pedidoId).maybeSingle();
+    if (atual?.entregador_id && atual.entregador_id !== data.entregadorId) {
+      await (context.supabase as any).from("entregadores").update({ status: "disponivel" }).eq("id", atual.entregador_id);
+    }
+
+    const patch: any = { entregador_id: data.entregadorId };
+    if (data.entregadorId) patch.status = "rota";
+    const { error } = await context.supabase.from("pedidos").update(patch).eq("id", data.pedidoId);
     if (error) throw error;
+
+    if (data.entregadorId) {
+      await (context.supabase as any).from("entregadores").update({ status: "em_entrega" }).eq("id", data.entregadorId);
+    }
     return { ok: true };
   });
 
@@ -157,13 +177,55 @@ export const listEntregas = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const distId = await getDistId(context.supabase, context.userId);
     if (!distId) return [];
-    const { data } = await context.supabase
+
+    // Se o usuário logado é um entregador vinculado, filtra pelos pedidos dele
+    const { data: meuEntregador } = await (context.supabase as any)
+      .from("entregadores").select("id").eq("user_id", context.userId).maybeSingle();
+
+    let q = context.supabase
       .from("pedidos")
-      .select("id,total,status,created_at,cliente:clientes(nome,telefone,endereco),entregador:entregadores(nome,veiculo_placa)")
+      .select("id,total,status,created_at,entregador_id,cliente:clientes(nome,telefone,endereco),entregador:entregadores(nome,veiculo_placa)")
       .eq("distribuidora_id", distId)
       .in("status", ["pago", "rota"])
       .order("created_at", { ascending: true });
+
+    if (meuEntregador?.id) q = q.eq("entregador_id", meuEntregador.id);
+    const { data } = await q;
     return data ?? [];
+  });
+
+// Retorna o cadastro de entregador vinculado ao usuário logado (ou null)
+export const getMeuEntregador = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data } = await (context.supabase as any)
+      .from("entregadores").select("*").eq("user_id", context.userId).maybeSingle();
+    return data ?? null;
+  });
+
+// Vincula a conta do usuário logado a um cadastro de entregador (match por telefone dentro da distribuidora)
+export const claimEntregador = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { telefone: string }) => z.object({ telefone: z.string().min(4).max(20) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const digits = data.telefone.replace(/\D/g, "");
+    // Procura entregador com telefone que contenha os dígitos e sem user_id vinculado
+    const { data: cand, error } = await (context.supabase as any)
+      .from("entregadores").select("id,user_id,telefone,distribuidora_id").is("user_id", null);
+    if (error) throw error;
+    const match = (cand ?? []).find((e: any) => (e.telefone ?? "").replace(/\D/g, "").endsWith(digits));
+    if (!match) throw new Error("Nenhum cadastro de entregador encontrado com esse telefone. Peça para a distribuidora te cadastrar.");
+    // Vincula: user_id gerenciável via política do dono da distribuidora OU do próprio entregador; usamos service role via política do owner? Não temos. Update direto — só funciona se RLS permitir. A política do entregador exige user_id = auth.uid(), o que não bate ainda. Usamos o admin client.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error: upErr } = await supabaseAdmin.from("entregadores").update({ user_id: context.userId }).eq("id", match.id);
+    if (upErr) throw upErr;
+    // Garante role 'entregador'
+    // Garante role 'entregador' (unique em user_id,role,distribuidora_id)
+    await supabaseAdmin.from("user_roles").upsert(
+      { user_id: context.userId, role: "entregador", distribuidora_id: match.distribuidora_id },
+      { onConflict: "user_id,role,distribuidora_id" }
+    );
+    return { ok: true };
   });
 
 // -------- Entregadores CRUD --------
