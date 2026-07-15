@@ -195,6 +195,12 @@ function PedidoDetail() {
           <button onClick={() => mut.mutate("cancelado")} className="w-full rounded-full bg-secondary py-3 text-sm font-semibold text-muted-foreground">Cancelar pedido</button>
         )}
       </div>
+      <ClienteProfileSheet
+        clienteId={p.cliente?.id ?? null}
+        open={showCliente}
+        onOpenChange={setShowCliente}
+      />
     </div>
   );
 }
+
