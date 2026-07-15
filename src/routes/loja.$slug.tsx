@@ -60,10 +60,12 @@ type CartItem = { produto_id: string; nome: string; preco: number; quantidade: n
 
 function LojaPage() {
   const { slug } = Route.useParams();
+  const slugSafe = typeof slug === "string" ? slug.trim() : "";
   const loadLoja = useServerFn(getLojaPublica);
   const { data, isLoading, error } = useQuery({
-    queryKey: ["loja", slug],
-    queryFn: () => loadLoja({ data: { id: slug } }),
+    queryKey: ["loja", slugSafe],
+    queryFn: () => loadLoja({ data: { id: slugSafe } }),
+    enabled: slugSafe.length > 0,
     retry: false,
   });
 
@@ -72,19 +74,26 @@ function LojaPage() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   const categorias = useMemo(() => {
-    if (!data) return [];
+    if (!data?.produtos) return [];
     const set = new Set<string>();
     data.produtos.forEach((p: any) => set.add(p.categoria));
     return Array.from(set);
   }, [data]);
 
   const produtosFiltrados = useMemo(() => {
-    if (!data) return [];
+    if (!data?.produtos) return [];
     return data.produtos.filter((p: any) => p.categoria === catAtiva);
   }, [data, catAtiva]);
 
   const subtotal = cart.reduce((s, i) => s + i.preco * i.quantidade, 0);
   const qtyTotal = cart.reduce((s, i) => s + i.quantidade, 0);
+
+  const d: any = data?.distribuidora ?? null;
+  const nomeLoja = d ? displayNomeLoja(d) : "";
+
+  useEffect(() => {
+    if (nomeLoja) document.title = `${nomeLoja} — Cardápio | Pedirápido`;
+  }, [nomeLoja]);
 
   function addToCart(p: any) {
     setCart(prev => {
@@ -104,14 +113,33 @@ function LojaPage() {
     setCart(prev => prev.filter(i => i.produto_id !== produto_id));
   }
 
-  if (isLoading) {
+  // Loading: slug ainda não pronto OU query em andamento
+  if (!slugSafe || isLoading) {
     return (
-      <div className="min-h-screen grid place-items-center bg-[#F7F9FC]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-[#F7F9FC] pb-24">
+        <div className="mx-auto max-w-lg px-4 pt-8 pb-6 flex flex-col items-center">
+          <div className="h-28 w-28 rounded-3xl bg-slate-200 animate-pulse" />
+          <div className="mt-4 h-5 w-48 rounded-full bg-slate-200 animate-pulse" />
+          <div className="mt-2 h-3 w-32 rounded-full bg-slate-200 animate-pulse" />
+        </div>
+        <div className="mx-auto max-w-lg px-4 space-y-3">
+          {[0, 1, 2, 3].map(i => (
+            <div key={i} className="rounded-2xl bg-white p-4 shadow-soft flex items-center gap-3">
+              <div className="h-16 w-16 rounded-2xl bg-slate-200 animate-pulse" />
+              <div className="flex-1 space-y-2">
+                <div className="h-3 w-3/4 rounded-full bg-slate-200 animate-pulse" />
+                <div className="h-3 w-1/2 rounded-full bg-slate-200 animate-pulse" />
+              </div>
+              <div className="h-11 w-11 rounded-2xl bg-slate-200 animate-pulse" />
+            </div>
+          ))}
+        </div>
+        <div className="sr-only" role="status">Carregando cardápio…</div>
       </div>
     );
   }
-  if (error || !data) {
+
+  if (error || !data || !d) {
     return (
       <div className="min-h-screen grid place-items-center bg-[#F7F9FC] p-6 text-center">
         <div>
@@ -123,12 +151,6 @@ function LojaPage() {
     );
   }
 
-  const d = data.distribuidora as any;
-  const nomeLoja = displayNomeLoja(d);
-
-  useEffect(() => {
-    if (nomeLoja) document.title = `${nomeLoja} — Cardápio | Pedirápido`;
-  }, [nomeLoja]);
 
   return (
     <div className="min-h-screen bg-[#F7F9FC] pb-32">
@@ -377,6 +399,8 @@ function CheckoutModal(p: CheckoutProps) {
   const [bairro, setBairro] = useState("");
   const [cidade, setCidade] = useState("");
   const [complemento, setComplemento] = useState("");
+  const [referencia, setReferencia] = useState("");
+
   const [forma, setForma] = useState<"pix" | "cartao" | "dinheiro">("pix");
   const [troco, setTroco] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -400,7 +424,7 @@ function CheckoutModal(p: CheckoutProps) {
         setNome(c.nome ?? "");
         if (c.endereco) {
           const enderecoStr = c.endereco;
-          // Tenta parsear "Rua, 123 — Bairro — Cidade — Ref: ..."
+          // Formato salvo: "Rua, 123 — Bairro — Cidade — Compl: X" (ou legado "Ref: ...")
           const parts = enderecoStr.split(" — ");
           if (parts[0]) {
             const [r, n] = parts[0].split(",").map(s => s.trim());
@@ -410,9 +434,11 @@ function CheckoutModal(p: CheckoutProps) {
           if (parts[1]) setBairro(parts[1]);
           if (parts[2]) setCidade(parts[2]);
         }
+        if ((c as any).complemento) setComplemento((c as any).complemento);
         if (c.cep) setCep(maskCep(c.cep));
         toast.success("Bem-vindo(a) de volta! 👋");
       }
+
     } catch { /* ignore */ }
     finally { setBuscandoCli(false); }
   }
@@ -438,7 +464,7 @@ function CheckoutModal(p: CheckoutProps) {
     if (!rua || !numero || !bairro || !cidade) return toast.error("Preencha o endereço completo");
     const endereco = [
       `${rua}, ${numero}`, bairro, cidade,
-      complemento ? `Ref: ${complemento}` : "",
+      referencia ? `Ref: ${referencia}` : "",
     ].filter(Boolean).join(" — ");
 
     setLoading(true);
@@ -446,7 +472,12 @@ function CheckoutModal(p: CheckoutProps) {
       const r = await checkoutFn({
         data: {
           distribuidora_id: p.distribuidoraId,
-          cliente: { nome, telefone, endereco, cep: cep || undefined },
+          cliente: {
+            nome, telefone, endereco,
+            cep: cep || undefined,
+            complemento: complemento || undefined,
+          },
+
           itens: p.cart.map(i => ({ produto_id: i.produto_id, quantidade: i.quantidade })),
           forma_pagamento: forma,
           troco_para: forma === "dinheiro" && troco ? Number(troco.replace(",", ".")) : null,
@@ -562,6 +593,15 @@ function CheckoutModal(p: CheckoutProps) {
                   <Input value={numero} onChange={(e) => setNumero(e.target.value)} className="mt-1 rounded-2xl h-11" />
                 </div>
               </div>
+              <div>
+                <Label className="text-xs font-bold">Complemento (opcional)</Label>
+                <Input
+                  value={complemento}
+                  onChange={(e) => setComplemento(e.target.value)}
+                  placeholder="Ex: Apto 12, Bloco B, Casa fundos..."
+                  className="mt-1 rounded-2xl h-11"
+                />
+              </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <Label className="text-xs font-bold">Bairro *</Label>
@@ -573,9 +613,15 @@ function CheckoutModal(p: CheckoutProps) {
                 </div>
               </div>
               <div>
-                <Label className="text-xs font-bold flex items-center gap-1"><MapPin className="h-3 w-3" /> Ponto de referência</Label>
-                <Input value={complemento} onChange={(e) => setComplemento(e.target.value)} placeholder="Apto 12, próximo ao mercado..." className="mt-1 rounded-2xl h-11" />
+                <Label className="text-xs font-bold flex items-center gap-1"><MapPin className="h-3 w-3" /> Ponto de referência (opcional)</Label>
+                <Input
+                  value={referencia}
+                  onChange={(e) => setReferencia(e.target.value)}
+                  placeholder="Ex: Próximo ao mercado, portão azul..."
+                  className="mt-1 rounded-2xl h-11"
+                />
               </div>
+
             </div>
           )}
 

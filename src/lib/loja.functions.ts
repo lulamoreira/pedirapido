@@ -127,18 +127,19 @@ export const findClientePublico = createServerFn({ method: "POST" })
     if (digits.length < 10) return null;
     const { data: cli } = await supabaseAdmin
       .from("clientes")
-      .select("id,nome,telefone,endereco,cep")
+      .select("id,nome,telefone,endereco,cep,complemento")
       .eq("distribuidora_id", data.distribuidora_id)
       .eq("telefone", digits)
       .maybeSingle();
     return cli ?? null;
+
   });
 
 // -------- Checkout público --------
 export const checkoutLojaPublica = createServerFn({ method: "POST" })
   .inputValidator((d: {
     distribuidora_id: string;
-    cliente: { nome: string; telefone: string; endereco: string; cep?: string };
+    cliente: { nome: string; telefone: string; endereco: string; cep?: string; complemento?: string };
     itens: Array<{ produto_id: string; quantidade: number }>;
     forma_pagamento: "pix" | "cartao" | "dinheiro";
     troco_para?: number | null;
@@ -152,6 +153,7 @@ export const checkoutLojaPublica = createServerFn({ method: "POST" })
       telefone: z.string().min(10).max(20),
       endereco: z.string().trim().min(3).max(500),
       cep: z.string().trim().max(20).optional(),
+      complemento: z.string().trim().max(160).optional(),
     }),
     itens: z.array(z.object({
       produto_id: z.string().uuid(),
@@ -168,7 +170,7 @@ export const checkoutLojaPublica = createServerFn({ method: "POST" })
 
     const { data: dist, error: eDist } = await supabaseAdmin
       .from("distribuidoras")
-      .select("id,nome,email,plano,taxa_entrega_padrao")
+      .select("id,nome,email,plano,taxa_entrega_padrao,telefone")
       .eq("id", data.distribuidora_id)
       .maybeSingle();
     if (eDist) throw eDist;
@@ -181,12 +183,17 @@ export const checkoutLojaPublica = createServerFn({ method: "POST" })
       .eq("distribuidora_id", dist.id).eq("telefone", digits).maybeSingle();
     let clienteId = existing?.id as string | undefined;
     const nomeNorm = normalizeProperName(data.cliente.nome);
-    const endNorm = normalizeSentence(data.cliente.endereco);
+    const complNorm = data.cliente.complemento ? normalizeSentence(data.cliente.complemento) : null;
+    // O endereço salvo no cliente inclui o complemento para exibição imediata
+    // nos painéis do lojista (lista de clientes, detalhes de pedido, histórico).
+    const enderecoBase = normalizeSentence(data.cliente.endereco);
+    const endNorm = complNorm ? `${enderecoBase} — Compl: ${complNorm}` : enderecoBase;
     if (clienteId) {
       await supabaseAdmin.from("clientes").update({
         nome: nomeNorm,
         endereco: endNorm,
         cep: data.cliente.cep ?? null,
+        complemento: complNorm,
       }).eq("id", clienteId);
     } else {
       const { data: novo, error: eCli } = await supabaseAdmin.from("clientes").insert({
@@ -195,10 +202,12 @@ export const checkoutLojaPublica = createServerFn({ method: "POST" })
         telefone: digits,
         endereco: endNorm,
         cep: data.cliente.cep ?? null,
+        complemento: complNorm,
       }).select("id").single();
       if (eCli) throw eCli;
       clienteId = novo.id;
     }
+
 
 
     // Produtos + validação categoria por plano
