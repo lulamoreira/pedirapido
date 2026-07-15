@@ -85,7 +85,13 @@ function ClientesPage() {
               <li key={c.id} className="rounded-2xl bg-card p-4 shadow-soft">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-black">{c.nome}</p>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCliente(c.id)}
+                      className="truncate text-sm font-black text-left text-primary hover:underline"
+                    >
+                      {c.nome}
+                    </button>
                     <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Phone className="h-3 w-3" /> {formatPhone(c.telefone)}
                     </p>
@@ -96,15 +102,20 @@ function ClientesPage() {
                       </p>
                     )}
                   </div>
-                  <div className="shrink-0 rounded-full bg-primary/10 px-3 py-1.5 text-center">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCliente(c.id)}
+                    className="shrink-0 rounded-full bg-primary/10 px-3 py-1.5 text-center hover:bg-primary/20 transition"
+                  >
                     <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-primary">
                       <Package className="h-3 w-3" /> pedidos
                     </div>
                     <div className="text-lg font-black text-primary">{c.total_pedidos}</div>
-                  </div>
+                  </button>
                 </div>
               </li>
             ))}
+
           </ul>
         )}
       </main>
