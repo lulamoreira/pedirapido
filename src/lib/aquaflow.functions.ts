@@ -191,7 +191,7 @@ export const listProdutos = createServerFn({ method: "GET" })
 
 export const upsertProduto = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { id?: string; nome: string; preco: number; estoque: number; estoque_minimo: number; categoria: "agua" | "bebidas" | "descartaveis" | "petiscos" | "outros"; volume_valor?: number | null; volume_unidade?: "L" | "ml" | null }) =>
+  .inputValidator((d: { id?: string; nome: string; preco: number; estoque: number; estoque_minimo: number; categoria: "agua" | "bebidas" | "descartaveis" | "petiscos" | "outros"; volume_valor?: number | null; volume_unidade?: "L" | "ml" | null; marca?: string | null; tipo_embalagem?: string | null; descricao?: string | null }) =>
     z.object({
       id: z.string().uuid().optional(),
       nome: z.string().min(1).max(80),
@@ -201,6 +201,9 @@ export const upsertProduto = createServerFn({ method: "POST" })
       categoria: z.enum(["agua", "bebidas", "descartaveis", "petiscos", "outros"]),
       volume_valor: z.number().positive().max(100000).nullish(),
       volume_unidade: z.enum(["L", "ml"]).nullish(),
+      marca: z.string().max(80).nullish(),
+      tipo_embalagem: z.string().max(60).nullish(),
+      descricao: z.string().max(300).nullish(),
     }).parse(d))
   .handler(async ({ data, context }) => {
     const distId = await getDistId(context.supabase, context.userId);
@@ -211,9 +214,13 @@ export const upsertProduto = createServerFn({ method: "POST" })
       throw new Error("Categoria disponível apenas no plano Business. Faça upgrade em /plano.");
     }
     const payload: any = {
-      nome: data.nome, preco: data.preco, estoque: data.estoque, estoque_minimo: data.estoque_minimo, categoria: data.categoria,
+      nome: normalizeSentence(data.nome),
+      preco: data.preco, estoque: data.estoque, estoque_minimo: data.estoque_minimo, categoria: data.categoria,
       volume_valor: data.volume_valor ?? null,
       volume_unidade: data.volume_valor ? (data.volume_unidade ?? "L") : null,
+      marca: data.marca ? normalizeSentence(data.marca) : null,
+      tipo_embalagem: data.tipo_embalagem ? normalizeSentence(data.tipo_embalagem) : null,
+      descricao: data.descricao ? normalizeSentence(data.descricao) : null,
     };
     if (data.id) {
       const { error } = await context.supabase.from("produtos").update(payload).eq("id", data.id);
@@ -224,6 +231,7 @@ export const upsertProduto = createServerFn({ method: "POST" })
     }
     return { ok: true };
   });
+
 
 export const deleteProduto = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
