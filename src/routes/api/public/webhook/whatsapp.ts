@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { gerarCodigoPix } from "@/lib/pix";
+import { generatePixCode } from "@/lib/pix";
 
 const schema = z.object({
   distribuidora_id: z.string().uuid(),
