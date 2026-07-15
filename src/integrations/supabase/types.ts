@@ -67,9 +67,11 @@ export type Database = {
           logo_url: string | null
           logradouro: string | null
           nome: string
+          nome_fantasia: string | null
           numero: string | null
           owner_user_id: string
           plano: Database["public"]["Enums"]["plano_tipo"]
+          razao_social: string | null
           status_assinatura: Database["public"]["Enums"]["status_assinatura_tipo"]
           taxa_entrega_padrao: number
           telefone: string | null
@@ -92,9 +94,11 @@ export type Database = {
           logo_url?: string | null
           logradouro?: string | null
           nome: string
+          nome_fantasia?: string | null
           numero?: string | null
           owner_user_id: string
           plano?: Database["public"]["Enums"]["plano_tipo"]
+          razao_social?: string | null
           status_assinatura?: Database["public"]["Enums"]["status_assinatura_tipo"]
           taxa_entrega_padrao?: number
           telefone?: string | null
@@ -117,9 +121,11 @@ export type Database = {
           logo_url?: string | null
           logradouro?: string | null
           nome?: string
+          nome_fantasia?: string | null
           numero?: string | null
           owner_user_id?: string
           plano?: Database["public"]["Enums"]["plano_tipo"]
+          razao_social?: string | null
           status_assinatura?: Database["public"]["Enums"]["status_assinatura_tipo"]
           taxa_entrega_padrao?: number
           telefone?: string | null
@@ -348,6 +354,8 @@ export type Database = {
           id: string
           nome: string
           preco: number
+          volume_unidade: string | null
+          volume_valor: number | null
         }
         Insert: {
           ativo?: boolean
@@ -360,6 +368,8 @@ export type Database = {
           id?: string
           nome: string
           preco: number
+          volume_unidade?: string | null
+          volume_valor?: number | null
         }
         Update: {
           ativo?: boolean
@@ -372,6 +382,8 @@ export type Database = {
           id?: string
           nome?: string
           preco?: number
+          volume_unidade?: string | null
+          volume_valor?: number | null
         }
         Relationships: [
           {
