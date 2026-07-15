@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { listEntregas, updatePedidoStatus } from "@/lib/aquaflow.functions";
+import { useState } from "react";
+import { listEntregas, updatePedidoStatus, getMeuEntregador, claimEntregador } from "@/lib/aquaflow.functions";
 import { formatBRL, formatPhone } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
-import { ArrowLeft, MapPin, Phone, Truck, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, MapPin, Phone, Truck, CheckCircle2, Bike, LinkIcon } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/entregador")({
   component: EntregadorPage,
@@ -11,10 +13,17 @@ export const Route = createFileRoute("/_authenticated/entregador")({
 
 function EntregadorPage() {
   const qc = useQueryClient();
-  const { data = [], isLoading } = useQuery({ queryKey: ["entregas"], queryFn: () => listEntregas(), refetchInterval: 15_000 });
+  const { data: meu, isLoading: loadingMeu } = useQuery({ queryKey: ["meu-entregador"], queryFn: () => getMeuEntregador() });
+  const { data = [], isLoading } = useQuery({ queryKey: ["entregas"], queryFn: () => listEntregas(), refetchInterval: 15_000, enabled: !!meu });
   const mut = useMutation({
     mutationFn: (v: { id: string; status: string }) => updatePedidoStatus({ data: v }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["entregas"] }); qc.invalidateQueries({ queryKey: ["dashboard"] }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["entregas"] }); qc.invalidateQueries({ queryKey: ["dashboard"] }); toast.success("Entrega confirmada!"); },
+  });
+  const [tel, setTel] = useState("");
+  const claim = useMutation({
+    mutationFn: () => claimEntregador({ data: { telefone: tel } }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["meu-entregador"] }); toast.success("Conta vinculada!"); },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   return (
