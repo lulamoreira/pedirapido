@@ -346,6 +346,24 @@ function ConfigPage() {
           </button>
         </Card>
 
+        <Card icon={ShieldCheck} title="Verificação por WhatsApp">
+          <div className="flex items-start gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold">Exigir verificação por WhatsApp</p>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Ao ligar, o cliente precisa confirmar um código enviado no WhatsApp antes de finalizar o pedido.
+                Só ative depois que o envio de WhatsApp da loja estiver conectado e testado — senão os clientes não recebem o código.
+              </p>
+            </div>
+            <Switch
+              checked={form.verificacao_whatsapp}
+              onCheckedChange={(v) => setForm({ ...form, verificacao_whatsapp: !!v })}
+            />
+          </div>
+        </Card>
+
+
+
 
 
         <button type="submit" disabled={save.isPending} className="w-full rounded-full gradient-primary py-3.5 text-sm font-bold text-primary-foreground shadow-float disabled:opacity-50">
