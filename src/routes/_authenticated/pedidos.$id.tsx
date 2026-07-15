@@ -1,9 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getPedido, updatePedidoStatus, assignEntregador, listEntregadores } from "@/lib/aquaflow.functions";
+import { getPedido, updatePedidoStatus, assignEntregador, listEntregadores, listNotificacoes } from "@/lib/aquaflow.functions";
 import { formatBRL, formatPhone } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
-import { ArrowLeft, Copy, CheckCircle2, MapPin, Phone, Bike } from "lucide-react";
+import { ArrowLeft, Copy, CheckCircle2, MapPin, Phone, Bike, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/pedidos/$id")({
@@ -18,6 +18,7 @@ function PedidoDetail() {
   const qc = useQueryClient();
   const { data: pedido, isLoading } = useQuery({ queryKey: ["pedido", id], queryFn: () => getPedido({ data: { id } }) });
   const { data: entregadores = [] } = useQuery({ queryKey: ["entregadores"], queryFn: () => listEntregadores() });
+  const { data: notifs = [] } = useQuery({ queryKey: ["notifs", id], queryFn: () => listNotificacoes({ data: { pedidoId: id } }) });
 
   const mut = useMutation({
     mutationFn: (status: string) => updatePedidoStatus({ data: { id, status } }),
@@ -26,12 +27,17 @@ function PedidoDetail() {
       qc.invalidateQueries({ queryKey: ["pedidos"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       qc.invalidateQueries({ queryKey: ["entregas"] });
+      qc.invalidateQueries({ queryKey: ["notifs", id] });
     },
   });
 
   const assign = useMutation({
     mutationFn: (entregadorId: string | null) => assignEntregador({ data: { pedidoId: id, entregadorId } }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["pedido", id] }); toast.success("Entregador atualizado"); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["pedido", id] });
+      qc.invalidateQueries({ queryKey: ["notifs", id] });
+      toast.success("Entregador atualizado");
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -120,6 +126,28 @@ function PedidoDetail() {
           </div>
         )}
       </div>
+
+      {(notifs as any[]).length > 0 && (
+        <div className="card-float mt-3 p-4">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Notificações WhatsApp</h2>
+          <ul className="mt-2 space-y-2">
+            {(notifs as any[]).map((n) => {
+              const hora = new Date(n.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+              const label = n.tipo === "rota" ? "WhatsApp de Rota" : "WhatsApp de Entrega";
+              const cor = n.status === "enviado" ? "text-status-paid" : n.status === "simulado" ? "text-status-preparing" : "text-status-cancelled";
+              return (
+                <li key={n.id} className="flex items-center gap-2 text-xs">
+                  <MessageCircle className={`h-4 w-4 ${cor}`} />
+                  <span className="font-semibold">{label}</span>
+                  <span className="text-muted-foreground">enviado às {hora}</span>
+                  {n.status === "simulado" && <span className="ml-auto rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase">simulado</span>}
+                  {n.status === "falha" && <span className="ml-auto rounded-full bg-status-cancelled/10 px-2 py-0.5 text-[10px] font-bold uppercase text-status-cancelled">falha</span>}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
 
       {p.codigo_pix && p.status === "pendente" && (
         <div className="mt-3 rounded-2xl border-2 border-dashed border-primary/40 bg-accent p-4">
