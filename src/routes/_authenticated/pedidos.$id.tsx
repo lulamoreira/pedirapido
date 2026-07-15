@@ -127,6 +127,28 @@ function PedidoDetail() {
         )}
       </div>
 
+      {(notifs as any[]).length > 0 && (
+        <div className="card-float mt-3 p-4">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Notificações WhatsApp</h2>
+          <ul className="mt-2 space-y-2">
+            {(notifs as any[]).map((n) => {
+              const hora = new Date(n.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+              const label = n.tipo === "rota" ? "WhatsApp de Rota" : "WhatsApp de Entrega";
+              const cor = n.status === "enviado" ? "text-status-paid" : n.status === "simulado" ? "text-status-preparing" : "text-status-cancelled";
+              return (
+                <li key={n.id} className="flex items-center gap-2 text-xs">
+                  <MessageCircle className={`h-4 w-4 ${cor}`} />
+                  <span className="font-semibold">{label}</span>
+                  <span className="text-muted-foreground">enviado às {hora}</span>
+                  {n.status === "simulado" && <span className="ml-auto rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase">simulado</span>}
+                  {n.status === "falha" && <span className="ml-auto rounded-full bg-status-cancelled/10 px-2 py-0.5 text-[10px] font-bold uppercase text-status-cancelled">falha</span>}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
       {p.codigo_pix && p.status === "pendente" && (
         <div className="mt-3 rounded-2xl border-2 border-dashed border-primary/40 bg-accent p-4">
           <h2 className="text-xs font-bold uppercase tracking-wider text-primary">PIX Copia e Cola</h2>
