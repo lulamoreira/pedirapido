@@ -357,11 +357,15 @@ type CheckoutProps = {
   distribuidoraId: string;
   taxaEntrega: number;
   cart: CartItem[];
+  isClosed: boolean;
+  proximoDia: number | null;
+  proximoHorario: string | null;
   onClose: () => void;
   onUpdateQty: (id: string, delta: number) => void;
   onRemove: (id: string) => void;
   onSuccess: () => void;
 };
+
 
 function CheckoutModal(p: CheckoutProps) {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
