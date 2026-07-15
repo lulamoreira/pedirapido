@@ -9,8 +9,9 @@ import { maskCnpj } from "@/lib/br-utils";
 import { toast } from "sonner";
 import {
   ShoppingBag, Plus, Minus, Clock, MapPin, Droplet, Wine, Package as PkgIcon,
-  Cookie, Sparkles, ChevronLeft, X, Loader2, CheckCircle2, Copy, Search,
+  Cookie, Sparkles, ChevronLeft, X, Loader2, CheckCircle2, Copy, Search, Moon,
 } from "lucide-react";
+
 import {
   getLojaPublica, findClientePublico, checkoutLojaPublica,
 } from "@/lib/loja.functions";
