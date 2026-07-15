@@ -68,8 +68,10 @@ function PedidoTrack() {
     );
   }
 
-  const p = data as Record<string, unknown> & {
+  const p = data as unknown as {
+    id: string;
     status: string;
+    subtotal: number; taxa_entrega: number; total: number;
     distribuidora?: { nome: string; tempo_estimado_min?: number; telefone?: string | null; logo_url?: string | null };
     entregador?: { nome: string; veiculo_modelo: string | null; veiculo_placa: string | null } | null;
     codigo_pix?: string | null;
