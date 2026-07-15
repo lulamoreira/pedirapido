@@ -486,8 +486,21 @@ function CheckoutModal(p: CheckoutProps) {
         <div className="max-h-[75vh] overflow-y-auto p-4 space-y-3 bg-[#F7F9FC]">
           {step === 1 && (
             <>
+              {p.isClosed && p.cart.length > 0 && (
+                <div className="rounded-2xl border-2 border-amber-300 bg-amber-50 p-3 text-xs text-amber-900 flex items-start gap-2">
+                  <Moon className="h-4 w-4 mt-0.5 shrink-0 text-amber-600" />
+                  <div>
+                    <b>Estamos fora do horário de funcionamento.</b>{" "}
+                    {p.proximoDia != null && p.proximoHorario ? (
+                      <>Reabrimos <b>{["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"][p.proximoDia]}</b> às <b>{p.proximoHorario}</b>. </>
+                    ) : null}
+                    Deseja confirmar seu pedido como <b>prioridade</b> assim que a loja abrir?
+                  </div>
+                </div>
+              )}
               {p.cart.length === 0 ? (
                 <p className="py-10 text-center text-sm text-muted-foreground">Sacola vazia</p>
+
               ) : (
                 <>
                   <ul className="space-y-2">
