@@ -11,7 +11,7 @@ import { usePreOrderRealtime } from "@/hooks/usePreOrderRealtime";
 import { unlockAudio } from "@/lib/notify-sound";
 import { useSessionUser } from "@/hooks/useSessionUser";
 import { isMasterEmail } from "@/lib/isMaster";
-import { Bell, TrendingUp, Package, AlertTriangle, Sparkles, Plus, Shield, Globe, Share2, Moon } from "lucide-react";
+import { TrendingUp, Package, AlertTriangle, Sparkles, Plus, Shield, Globe, Share2, Moon } from "lucide-react";
 import { toast } from "sonner";
 
 
