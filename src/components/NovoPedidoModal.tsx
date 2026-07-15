@@ -113,9 +113,10 @@ export function NovoPedidoModal({ open, onClose }: { open: boolean; onClose: () 
                 <li key={p.id} className="flex items-center justify-between rounded-2xl bg-secondary/60 p-3">
                   <div className="min-w-0">
                     <div className="truncate text-sm font-bold">{p.nome}</div>
-                    {formatVolume(p.volume_valor, p.volume_unidade) && (
-                      <div className="text-[11px] font-semibold text-muted-foreground">{formatVolume(p.volume_valor, p.volume_unidade)}</div>
+                    {formatProdutoLinha(p) && (
+                      <div className="text-[11px] font-semibold text-muted-foreground">{formatProdutoLinha(p)}</div>
                     )}
+
                     <div className="text-xs text-muted-foreground">{formatBRL(Number(p.preco))} · estoque {p.estoque}</div>
                   </div>
                   {it ? (
