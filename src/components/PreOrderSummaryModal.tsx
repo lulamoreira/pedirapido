@@ -15,31 +15,26 @@ function volumeStr(v: any) {
   return ` ${v.volume_valor}${v.volume_unidade ?? ""}`;
 }
 
-export function PreOrderSummaryModal({
-  distribuidoraId,
-  isOpen,
-}: {
-  distribuidoraId?: string;
-  isOpen: boolean; // horário atual está aberto
-}) {
+export function PreOrderSummaryModal({ distribuidoraId }: { distribuidoraId?: string }) {
   const fn = useServerFn(listPreOrdersResumo);
   const { data } = useQuery({
     queryKey: ["preorder-summary", distribuidoraId],
     queryFn: () => fn(),
-    enabled: !!distribuidoraId && isOpen,
+    enabled: !!distribuidoraId,
     staleTime: 60_000,
   });
 
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if (!isOpen || !data || data.length === 0) return;
+    if (!data || data.length === 0) return;
     const today = new Date().toISOString().slice(0, 10);
     const last = typeof window !== "undefined" ? localStorage.getItem(KEY) : null;
     if (last === today) return;
     setOpen(true);
     try { localStorage.setItem(KEY, today); } catch { /* ignore */ }
-  }, [data, isOpen]);
+  }, [data]);
+
 
   if (!data || data.length === 0) return null;
 
