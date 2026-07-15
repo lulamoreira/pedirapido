@@ -387,6 +387,7 @@ export const updateDistribuidoraConfig = createServerFn({ method: "POST" })
     complemento?: string | null; bairro?: string | null; cidade?: string | null; uf?: string | null;
     logo_url?: string | null;
     slug?: string | null;
+    verificacao_whatsapp?: boolean;
   }) =>
     z.object({
       nome_fantasia: z.string().min(2).max(120),
@@ -406,6 +407,7 @@ export const updateDistribuidoraConfig = createServerFn({ method: "POST" })
       uf: z.string().max(2).nullish(),
       logo_url: z.string().max(500000).nullish(),
       slug: z.string().max(60).nullish(),
+      verificacao_whatsapp: z.boolean().optional(),
     }).parse(d))
   .handler(async ({ data, context }) => {
     const payload: Record<string, unknown> = {
@@ -425,6 +427,8 @@ export const updateDistribuidoraConfig = createServerFn({ method: "POST" })
     };
 
     if (data.logo_url !== undefined) payload.logo_url = data.logo_url;
+    if (data.verificacao_whatsapp !== undefined) payload.verificacao_whatsapp = data.verificacao_whatsapp;
+
 
     // Slug: validar unicidade se enviado
     if (data.slug !== undefined && data.slug !== null && data.slug !== "") {

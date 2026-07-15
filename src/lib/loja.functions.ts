@@ -38,7 +38,7 @@ export const getLojaPublica = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.id);
-    const cols = "id,slug,nome,nome_fantasia,razao_social,cnpj,telefone,plano,taxa_entrega_padrao,horario_abertura,horario_fechamento,tempo_estimado_min,status_assinatura,logo_url,logradouro,numero,complemento,bairro,cidade,uf,cep";
+    const cols = "id,slug,nome,nome_fantasia,razao_social,cnpj,telefone,plano,taxa_entrega_padrao,horario_abertura,horario_fechamento,tempo_estimado_min,status_assinatura,logo_url,logradouro,numero,complemento,bairro,cidade,uf,cep,verificacao_whatsapp";
     const { data: dist, error } = await supabaseAdmin
       .from("distribuidoras")
       .select(cols)
@@ -145,6 +145,9 @@ export const checkoutLojaPublica = createServerFn({ method: "POST" })
     troco_para?: number | null;
     observacoes?: string;
     is_pre_order?: boolean;
+    verification_token?: string;
+
+
 
   }) => z.object({
     distribuidora_id: z.string().uuid(),
@@ -163,6 +166,7 @@ export const checkoutLojaPublica = createServerFn({ method: "POST" })
     troco_para: z.number().positive().max(10000).nullish(),
     observacoes: z.string().max(300).optional(),
     is_pre_order: z.boolean().optional(),
+    verification_token: z.string().uuid().optional(),
   }).parse(d))
 
   .handler(async ({ data }) => {
@@ -170,11 +174,26 @@ export const checkoutLojaPublica = createServerFn({ method: "POST" })
 
     const { data: dist, error: eDist } = await supabaseAdmin
       .from("distribuidoras")
-      .select("id,nome,email,plano,taxa_entrega_padrao,telefone")
+      .select("id,nome,email,plano,taxa_entrega_padrao,telefone,verificacao_whatsapp")
       .eq("id", data.distribuidora_id)
       .maybeSingle();
     if (eDist) throw eDist;
     if (!dist) throw new Error("Loja não encontrada");
+
+    // Verificação por WhatsApp (rollout por loja)
+    if ((dist as any).verificacao_whatsapp === true) {
+      const { assertTelefoneVerificado } = await import("@/lib/otp.functions");
+      try {
+        await assertTelefoneVerificado({
+          distribuidora_id: dist.id,
+          telefone: data.cliente.telefone,
+          token: data.verification_token ?? null,
+        });
+      } catch {
+        throw new Error("Verifique seu telefone antes de finalizar.");
+      }
+    }
+
 
     // Upsert cliente
     const digits = data.cliente.telefone.replace(/\D/g, "");

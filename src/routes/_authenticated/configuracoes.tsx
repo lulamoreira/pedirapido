@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { getPlano, updateDistribuidoraConfig, listHorarios, saveHorarios } from "@/lib/aquaflow.functions";
-import { ArrowLeft, Store, Clock, Truck, Timer, MapPin, Upload, Loader2, X, ImageIcon, FileText, Link2 } from "lucide-react";
+import { ArrowLeft, Store, Clock, Truck, Timer, MapPin, Upload, Loader2, X, ImageIcon, FileText, Link2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { maskCnpj, maskCep, validateCnpj, resizeImageToSquareDataUrl } from "@/lib/br-utils";
@@ -21,6 +21,7 @@ type Form = {
   taxa_entrega_padrao: number; tempo_estimado_min: number;
   cep: string; logradouro: string; numero: string; complemento: string;
   bairro: string; cidade: string; uf: string;
+  verificacao_whatsapp: boolean;
 };
 
 const EMPTY: Form = {
@@ -31,6 +32,7 @@ const EMPTY: Form = {
   taxa_entrega_padrao: 0, tempo_estimado_min: 45,
   cep: "", logradouro: "", numero: "", complemento: "",
   bairro: "", cidade: "", uf: "",
+  verificacao_whatsapp: false,
 };
 
 function ConfigPage() {
@@ -64,6 +66,7 @@ function ConfigPage() {
         bairro: String(d.bairro ?? ""),
         cidade: String(d.cidade ?? ""),
         uf: String(d.uf ?? ""),
+        verificacao_whatsapp: !!d.verificacao_whatsapp,
       });
       setLogoDataUrl(d.logo_url ? String(d.logo_url) : null);
     }
@@ -136,6 +139,7 @@ function ConfigPage() {
           uf: form.uf ? form.uf.toUpperCase().slice(0, 2) : null,
           logo_url: logoDataUrl,
           slug: form.slug ? form.slug.trim() : null,
+          verificacao_whatsapp: form.verificacao_whatsapp,
         },
       });
     },
@@ -341,6 +345,24 @@ function ConfigPage() {
             🔔 Testar som de notificação
           </button>
         </Card>
+
+        <Card icon={ShieldCheck} title="Verificação por WhatsApp">
+          <div className="flex items-start gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold">Exigir verificação por WhatsApp</p>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Ao ligar, o cliente precisa confirmar um código enviado no WhatsApp antes de finalizar o pedido.
+                Só ative depois que o envio de WhatsApp da loja estiver conectado e testado — senão os clientes não recebem o código.
+              </p>
+            </div>
+            <Switch
+              checked={form.verificacao_whatsapp}
+              onCheckedChange={(v) => setForm({ ...form, verificacao_whatsapp: !!v })}
+            />
+          </div>
+        </Card>
+
+
 
 
 

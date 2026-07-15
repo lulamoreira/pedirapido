@@ -15,6 +15,7 @@ import {
 import {
   getLojaPublica, findClientePublico, checkoutLojaPublica,
 } from "@/lib/loja.functions";
+import { requestOtp, verifyOtp } from "@/lib/otp.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -395,12 +396,14 @@ function LojaPage() {
           isClosed={!d.aberto}
           proximoDia={d.proximoDia ?? null}
           proximoHorario={d.proximoHorario ?? null}
+          verificacaoExigida={!!d.verificacao_whatsapp}
           onClose={() => setCheckoutOpen(false)}
           onUpdateQty={updateQty}
           onRemove={removeItem}
           onSuccess={() => setCart([])}
         />
       )}
+
 
     </div>
   );
@@ -415,6 +418,7 @@ type CheckoutProps = {
   isClosed: boolean;
   proximoDia: number | null;
   proximoHorario: string | null;
+  verificacaoExigida: boolean;
   onClose: () => void;
   onUpdateQty: (id: string, delta: number) => void;
   onRemove: (id: string) => void;
@@ -443,9 +447,91 @@ function CheckoutModal(p: CheckoutProps) {
 
   const findFn = useServerFn(findClientePublico);
   const checkoutFn = useServerFn(checkoutLojaPublica);
+  const requestOtpFn = useServerFn(requestOtp);
+  const verifyOtpFn = useServerFn(verifyOtp);
 
   const subtotal = p.cart.reduce((s, i) => s + i.preco * i.quantidade, 0);
   const total = subtotal + p.taxaEntrega;
+
+
+
+  // ---------- OTP ----------
+  const [otpEnviado, setOtpEnviado] = useState(false);
+  const [codigoInput, setCodigoInput] = useState("");
+  const [verificado, setVerificado] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
+  const [enviandoOtp, setEnviandoOtp] = useState(false);
+  const [verificandoOtp, setVerificandoOtp] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+
+  const telefoneDigits = telefone.replace(/\D/g, "");
+  const storageKey = telefoneDigits.length >= 10
+    ? `pedirapido_verif_${p.distribuidoraId}_${telefoneDigits}`
+    : null;
+
+  // Restaura verificação salva no dispositivo (30 dias)
+  useEffect(() => {
+    if (!p.verificacaoExigida) return;
+    if (!storageKey) { setVerificado(false); setToken(null); return; }
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (!raw) { setVerificado(false); setToken(null); return; }
+      const j = JSON.parse(raw) as { token?: string; ts?: number };
+      const trintaDias = 30 * 24 * 60 * 60 * 1000;
+      if (j?.token && j?.ts && Date.now() - j.ts < trintaDias) {
+        setVerificado(true);
+        setToken(j.token);
+      } else {
+        setVerificado(false);
+        setToken(null);
+      }
+    } catch {
+      setVerificado(false);
+      setToken(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storageKey, p.verificacaoExigida]);
+
+  // Cooldown tick
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((c) => Math.max(0, c - 1)), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
+
+  async function enviarOtp() {
+    if (telefoneDigits.length < 10) return toast.error("Informe um telefone válido");
+    setEnviandoOtp(true);
+    try {
+      const r = await requestOtpFn({ data: { distribuidora_id: p.distribuidoraId, telefone } });
+      setOtpEnviado(true);
+      setCooldown(60);
+      if (r?.simulado) {
+        toast.warning("Envio em modo teste — verifique se o WhatsApp da loja está conectado.");
+      } else {
+        toast.success("Código enviado no WhatsApp 📩");
+      }
+    } catch (e: any) {
+      toast.error(e?.message ?? "Não foi possível enviar o código");
+    } finally { setEnviandoOtp(false); }
+  }
+
+  async function verificarOtp() {
+    if (codigoInput.replace(/\D/g, "").length !== 6) return toast.error("Digite os 6 dígitos");
+    setVerificandoOtp(true);
+    try {
+      const r = await verifyOtpFn({ data: { distribuidora_id: p.distribuidoraId, telefone, codigo: codigoInput } });
+      setVerificado(true);
+      setToken(r.token);
+      if (storageKey) {
+        try { localStorage.setItem(storageKey, JSON.stringify({ token: r.token, ts: Date.now() })); } catch { /* ignore */ }
+      }
+      toast.success("Telefone verificado ✅");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Código inválido");
+    } finally { setVerificandoOtp(false); }
+  }
+
 
   async function buscarCliente() {
     const digits = telefone.replace(/\D/g, "");
@@ -515,6 +601,7 @@ function CheckoutModal(p: CheckoutProps) {
           forma_pagamento: forma,
           troco_para: forma === "dinheiro" && troco ? Number(troco.replace(",", ".")) : null,
           is_pre_order: p.isClosed,
+          verification_token: token ?? undefined,
         },
 
       });
@@ -608,6 +695,57 @@ function CheckoutModal(p: CheckoutProps) {
                   {buscandoCli && <div className="grid h-11 w-11 place-items-center"><Loader2 className="h-4 w-4 animate-spin text-primary" /></div>}
                 </div>
               </div>
+
+              {p.verificacaoExigida && (
+                verificado ? (
+                  <div className="rounded-2xl border-2 border-emerald-300 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4" /> Telefone verificado
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border-2 border-primary/30 bg-primary/5 p-3 space-y-2">
+                    <p className="text-xs font-bold text-primary">Verificação por WhatsApp obrigatória</p>
+                    {!otpEnviado ? (
+                      <Button
+                        type="button"
+                        onClick={enviarOtp}
+                        disabled={enviandoOtp || telefoneDigits.length < 10 || cooldown > 0}
+                        className="w-full rounded-2xl h-11 gradient-primary font-black"
+                      >
+                        {enviandoOtp ? <Loader2 className="h-4 w-4 animate-spin" /> : (cooldown > 0 ? `Aguarde ${cooldown}s` : "Enviar código no WhatsApp")}
+                      </Button>
+                    ) : (
+                      <>
+                        <div className="flex gap-2">
+                          <Input
+                            value={codigoInput}
+                            onChange={(e) => setCodigoInput(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                            placeholder="Código de 6 dígitos"
+                            inputMode="numeric"
+                            className="rounded-2xl h-11 text-center tracking-widest font-black"
+                          />
+                          <Button
+                            type="button"
+                            onClick={verificarOtp}
+                            disabled={verificandoOtp || codigoInput.length !== 6}
+                            className="rounded-2xl h-11 gradient-primary font-black px-4"
+                          >
+                            {verificandoOtp ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verificar"}
+                          </Button>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={enviarOtp}
+                          disabled={enviandoOtp || cooldown > 0}
+                          className="text-[11px] font-bold text-primary disabled:text-muted-foreground"
+                        >
+                          {cooldown > 0 ? `Reenviar em ${cooldown}s` : "Reenviar código"}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )
+              )}
+
               <div>
                 <Label className="text-xs font-bold">Nome completo *</Label>
                 <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Seu nome" className="mt-1 rounded-2xl h-11" />
@@ -734,16 +872,38 @@ function CheckoutModal(p: CheckoutProps) {
               </Button>
             )}
             {step === 2 && (
-              <Button onClick={() => setStep(3)} className="w-full rounded-2xl h-12 gradient-primary font-black">
-                Ir para pagamento
-              </Button>
+              <>
+                <Button
+                  onClick={() => setStep(3)}
+                  disabled={p.verificacaoExigida && !verificado}
+                  className="w-full rounded-2xl h-12 gradient-primary font-black"
+                >
+                  Ir para pagamento
+                </Button>
+                {p.verificacaoExigida && !verificado && (
+                  <p className="mt-2 text-center text-[11px] font-bold text-muted-foreground">
+                    Verifique seu telefone no WhatsApp para continuar.
+                  </p>
+                )}
+              </>
             )}
             {step === 3 && (
-              <Button onClick={finalizar} disabled={loading} className="w-full rounded-2xl h-12 gradient-primary font-black">
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : (p.isClosed ? `Enviar pré-pedido · ${fmt(total)}` : `Finalizar pedido · ${fmt(total)}`)}
-              </Button>
-
+              <>
+                <Button
+                  onClick={finalizar}
+                  disabled={loading || (p.verificacaoExigida && !verificado)}
+                  className="w-full rounded-2xl h-12 gradient-primary font-black"
+                >
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : (p.isClosed ? `Enviar pré-pedido · ${fmt(total)}` : `Finalizar pedido · ${fmt(total)}`)}
+                </Button>
+                {p.verificacaoExigida && !verificado && (
+                  <p className="mt-2 text-center text-[11px] font-bold text-muted-foreground">
+                    Volte e verifique seu telefone para finalizar.
+                  </p>
+                )}
+              </>
             )}
+
           </div>
         )}
       </DialogContent>
