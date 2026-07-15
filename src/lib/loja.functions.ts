@@ -119,7 +119,9 @@ export const checkoutLojaPublica = createServerFn({ method: "POST" })
     forma_pagamento: z.enum(["pix", "cartao", "dinheiro"]),
     troco_para: z.number().positive().max(10000).nullish(),
     observacoes: z.string().max(300).optional(),
+    is_pre_order: z.boolean().optional(),
   }).parse(d))
+
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
