@@ -68,6 +68,25 @@ export const listPedidos = createServerFn({ method: "GET" })
     return pedidos ?? [];
   });
 
+// -------- Resumo de pré-pedidos pendentes (para modal de abertura) --------
+export const listPreOrdersResumo = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const distId = await getDistId(context.supabase, context.userId);
+    if (!distId) return [];
+    const { data, error } = await context.supabase
+      .from("pedidos")
+      .select("id,total,created_at,cliente:clientes(nome),itens:pedido_itens(quantidade,produto:produtos(nome,volume_valor,volume_unidade))")
+      .eq("distribuidora_id", distId)
+      .eq("is_pre_order", true)
+      .eq("status", "pendente")
+      .order("created_at", { ascending: true })
+      .limit(50);
+    if (error) throw error;
+    return data ?? [];
+  });
+
+
 
 // -------- Pedido detail --------
 export const getPedido = createServerFn({ method: "GET" })
