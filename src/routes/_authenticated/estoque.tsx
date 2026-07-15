@@ -87,8 +87,8 @@ function EstoquePage() {
                     <span className="text-lg">{cat?.emoji ?? "💧"}</span>
                     <div className="truncate text-sm font-bold">{p.nome}</div>
                   </div>
-                  {formatVolume(p.volume_valor, p.volume_unidade) && (
-                    <div className="text-[11px] font-semibold text-muted-foreground">{formatVolume(p.volume_valor, p.volume_unidade)}</div>
+                  {formatProdutoLinha(p) && (
+                    <div className="text-[11px] font-semibold text-muted-foreground">{formatProdutoLinha(p)}</div>
                   )}
                   <div className="text-xs text-muted-foreground">{cat?.label} · {formatBRL(p.preco)}</div>
                   <div className={"mt-1 flex items-center gap-1 text-xs font-semibold " + (baixo ? "text-status-preparing" : "text-muted-foreground")}>
@@ -97,7 +97,8 @@ function EstoquePage() {
                   </div>
                 </div>
                 <div className="flex gap-1">
-                  <button onClick={() => setEditing({ id: p.id, nome: p.nome, preco: String(p.preco), estoque: String(p.estoque), estoque_minimo: String(p.estoque_minimo), categoria: (p.categoria ?? "agua") as Categoria, volume_valor: p.volume_valor != null ? String(p.volume_valor).replace(".", ",") : "", volume_unidade: (p.volume_unidade === "ml" ? "ml" : "L") as Unidade })} className="grid h-9 w-9 place-items-center rounded-xl bg-secondary" aria-label="Editar">
+                  <button onClick={() => setEditing({ id: p.id, nome: p.nome, preco: String(p.preco), estoque: String(p.estoque), estoque_minimo: String(p.estoque_minimo), categoria: (p.categoria ?? "agua") as Categoria, volume_valor: p.volume_valor != null ? String(p.volume_valor).replace(".", ",") : "", volume_unidade: (p.volume_unidade === "ml" ? "ml" : "L") as Unidade, marca: p.marca ?? "", tipo_embalagem: p.tipo_embalagem ?? "", descricao: p.descricao ?? "" })} className="grid h-9 w-9 place-items-center rounded-xl bg-secondary" aria-label="Editar">
+
                     <Pencil className="h-4 w-4" />
                   </button>
                   <button onClick={() => confirm("Remover produto?") && remove.mutate(p.id)} className="grid h-9 w-9 place-items-center rounded-xl bg-destructive/10 text-destructive" aria-label="Remover">
