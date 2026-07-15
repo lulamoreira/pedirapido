@@ -24,7 +24,7 @@ export const getLojaPublica = createServerFn({ method: "GET" })
 
     const { data: prods } = await supabaseAdmin
       .from("produtos")
-      .select("id,nome,descricao,preco,categoria,estoque,volume_valor,volume_unidade")
+      .select("id,nome,descricao,preco,categoria,estoque,volume_valor,volume_unidade,marca,tipo_embalagem")
       .eq("distribuidora_id", dist.id)
       .eq("ativo", true)
       .order("categoria")
