@@ -184,13 +184,15 @@ export const checkoutLojaPublica = createServerFn({ method: "POST" })
     const taxa = Number((dist as any).taxa_entrega_padrao ?? 0);
     const total = subtotal + taxa;
 
+    const isPreOrder = !!data.is_pre_order;
     const isPix = data.forma_pagamento === "pix";
-    const status = isPix ? "pendente" : "preparo";
+    // Pré-pedidos ficam sempre pendentes até o lojista abrir
+    const status = isPreOrder ? "pendente" : (isPix ? "pendente" : "preparo");
     const codigo_pix = isPix
       ? generatePixCode({ chave: (dist as any).email, nome: dist.nome, cidade: "SAO PAULO", valor: total })
       : null;
 
-    const obsParts = [`[Cardápio Web]`];
+    const obsParts = [isPreOrder ? `[Pré-pedido]` : `[Cardápio Web]`];
     if (data.observacoes) obsParts.push(data.observacoes);
     if (data.forma_pagamento === "dinheiro" && data.troco_para)
       obsParts.push(`Troco para R$ ${data.troco_para.toFixed(2)}`);
@@ -202,10 +204,12 @@ export const checkoutLojaPublica = createServerFn({ method: "POST" })
       status: status as any,
       codigo_pix,
       observacoes: obsParts.join(" | "),
-      pago_at: isPix ? null : new Date().toISOString(),
+      pago_at: (isPix || isPreOrder) ? null : new Date().toISOString(),
       forma_pagamento: data.forma_pagamento,
+      is_pre_order: isPreOrder,
     } as any).select("id,total,status,codigo_pix").single();
     if (ePed) throw ePed;
+
 
     const { error: eIt } = await supabaseAdmin.from("pedido_itens")
       .insert(itensPayload.map(it => ({ ...it, pedido_id: pedido.id })));
