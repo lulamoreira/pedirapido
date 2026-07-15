@@ -114,7 +114,8 @@ function ConfigPage() {
       }
       return updateDistribuidoraConfig({
         data: {
-          nome: form.nome,
+          nome_fantasia: form.nome_fantasia,
+          razao_social: form.razao_social || null,
           telefone: form.telefone || undefined,
           cnpj: form.cnpj ? form.cnpj.replace(/\D/g, "") : null,
           horario_abertura: form.horario_abertura,
