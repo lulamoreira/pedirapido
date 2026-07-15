@@ -114,16 +114,29 @@ export const listProdutos = createServerFn({ method: "GET" })
 
 export const upsertProduto = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { id?: string; nome: string; preco: number; estoque: number; estoque_minimo: number }) =>
-    z.object({ id: z.string().uuid().optional(), nome: z.string().min(1).max(80), preco: z.number().min(0), estoque: z.number().int().min(0), estoque_minimo: z.number().int().min(0) }).parse(d))
+  .inputValidator((d: { id?: string; nome: string; preco: number; estoque: number; estoque_minimo: number; categoria: "agua" | "bebidas" | "descartaveis" | "petiscos" | "outros" }) =>
+    z.object({
+      id: z.string().uuid().optional(),
+      nome: z.string().min(1).max(80),
+      preco: z.number().min(0),
+      estoque: z.number().int().min(0),
+      estoque_minimo: z.number().int().min(0),
+      categoria: z.enum(["agua", "bebidas", "descartaveis", "petiscos", "outros"]),
+    }).parse(d))
   .handler(async ({ data, context }) => {
     const distId = await getDistId(context.supabase, context.userId);
     if (!distId) throw new Error("Distribuidora não encontrada");
+    // Validação de plano: apenas Business libera categorias fora de "agua"
+    const { data: dist } = await context.supabase.from("distribuidoras").select("plano").eq("id", distId).maybeSingle();
+    if (data.categoria !== "agua" && (dist?.plano ?? "free") !== "business") {
+      throw new Error("Categoria disponível apenas no plano Business. Faça upgrade em /plano.");
+    }
+    const payload: any = { nome: data.nome, preco: data.preco, estoque: data.estoque, estoque_minimo: data.estoque_minimo, categoria: data.categoria };
     if (data.id) {
-      const { error } = await context.supabase.from("produtos").update({ nome: data.nome, preco: data.preco, estoque: data.estoque, estoque_minimo: data.estoque_minimo }).eq("id", data.id);
+      const { error } = await context.supabase.from("produtos").update(payload).eq("id", data.id);
       if (error) throw error;
     } else {
-      const { error } = await context.supabase.from("produtos").insert({ distribuidora_id: distId, nome: data.nome, preco: data.preco, estoque: data.estoque, estoque_minimo: data.estoque_minimo });
+      const { error } = await context.supabase.from("produtos").insert({ ...payload, distribuidora_id: distId });
       if (error) throw error;
     }
     return { ok: true };

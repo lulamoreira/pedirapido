@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getDashboard } from "@/lib/aquaflow.functions";
 import { formatBRL, daysUntil } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
 import { NovoPedidoModal } from "@/components/NovoPedidoModal";
+import { useSessionUser } from "@/hooks/useSessionUser";
+import { isMasterEmail } from "@/lib/isMaster";
 import { Bell, TrendingUp, Package, AlertTriangle, Sparkles, Plus, Shield } from "lucide-react";
 
 const dashOpts = queryOptions({
@@ -23,9 +25,13 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 function Dashboard() {
   const { data } = useSuspenseQuery(dashOpts);
   const [showNovo, setShowNovo] = useState(false);
+  const { user } = useSessionUser();
+  const clientMaster = isMasterEmail(user?.email);
+  useEffect(() => { if (user?.email) console.log("[Pedirápido] sessão:", user.email, "master?", clientMaster); }, [user?.email, clientMaster]);
   const trialDays = daysUntil(data.distribuidora.trial_expires_at);
   const isFree = data.distribuidora.plano === "free";
   const usoPct = Math.min(100, Math.round((data.totalMes / data.limiteFree) * 100));
+  const showMasterBtn = data.isAdminMaster || clientMaster;
 
   return (
     <div className="space-y-4 p-4">
@@ -33,9 +39,14 @@ function Dashboard() {
         <div className="min-w-0">
           <p className="text-xs font-medium text-muted-foreground">Olá,</p>
           <h1 className="truncate text-xl font-black tracking-tight">{data.distribuidora.nome}</h1>
+          {user?.email && (
+            <p className="mt-0.5 truncate text-[10px] text-muted-foreground/70">
+              🔎 sessão: <span className="font-mono">{user.email}</span>{clientMaster && " · master"}
+            </p>
+          )}
         </div>
         <div className="flex gap-2">
-          {data.isAdminMaster && (
+          {showMasterBtn && (
             <Link to="/admin" className="grid h-11 w-11 place-items-center rounded-2xl gradient-primary text-primary-foreground shadow-soft" aria-label="Admin Master">
               <Shield className="h-5 w-5" />
             </Link>

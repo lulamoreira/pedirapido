@@ -72,7 +72,7 @@ export const Route = createFileRoute("/api/public/webhook/whatsapp")({
 
           const taxa = input.taxa_entrega ?? 0;
           const total = subtotal + taxa;
-          const codigoPix = generatePixCode({ chave: dist.email ?? "aquaflow@demo.com.br", nome: dist.nome, cidade: "SAO PAULO", valor: total });
+          const codigoPix = generatePixCode({ chave: dist.email ?? "pedirapido@demo.com.br", nome: dist.nome, cidade: "SAO PAULO", valor: total });
 
           const { data: pedido, error: perr } = await supabaseAdmin.from("pedidos").insert({
             distribuidora_id: dist.id,

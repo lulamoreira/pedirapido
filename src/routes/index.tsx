@@ -1,11 +1,37 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Droplet, MessageCircle, Zap, Bike, BarChart3, ShieldCheck } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Droplet, MessageCircle, Zap, Bike, BarChart3, ShieldCheck, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { isMasterEmail } from "@/lib/isMaster";
 
 export const Route = createFileRoute("/")({
+  ssr: false,
   component: Landing,
 });
 
 function Landing() {
+  const navigate = useNavigate();
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      const email = data.session?.user.email;
+      if (email) {
+        navigate({ to: isMasterEmail(email) ? "/admin" : "/dashboard", replace: true });
+        return;
+      }
+      setChecking(false);
+    });
+  }, [navigate]);
+
+  if (checking) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <main className="min-h-screen">
       {/* Header */}
@@ -15,7 +41,7 @@ function Landing() {
             <div className="grid h-9 w-9 place-items-center rounded-2xl gradient-primary">
               <Droplet className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="text-lg font-black tracking-tight">AquaFlow</span>
+            <span className="text-lg font-black tracking-tight">Pedirápido</span>
           </div>
           <Link
             to="/auth"
@@ -107,7 +133,7 @@ function Landing() {
         </div>
 
         <div className="mt-14 rounded-3xl gradient-primary p-8 text-center text-primary-foreground shadow-float md:p-12">
-          <h3 className="text-2xl font-black md:text-3xl">Teste o AquaFlow grátis por 14 dias</h3>
+          <h3 className="text-2xl font-black md:text-3xl">Teste o Pedirápido grátis por 14 dias</h3>
           <p className="mx-auto mt-2 max-w-xl opacity-90">Acesso completo ao plano Pro. Sem cartão. Ative em menos de 2 minutos.</p>
           <Link
             to="/auth"
@@ -119,7 +145,7 @@ function Landing() {
       </section>
 
       <footer className="border-t border-border py-6 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} AquaFlow · Feito para distribuidoras de água mineral
+        © {new Date().getFullYear()} Pedirápido · Feito para distribuidoras de água mineral
       </footer>
     </main>
   );

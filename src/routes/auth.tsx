@@ -18,9 +18,17 @@ function AuthPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    const go = (email?: string | null) => {
+      const master = !!email && ["lula1973@gmail.com", "lula1973@gmail.com.br"].includes(email.toLowerCase());
+      navigate({ to: master ? "/admin" : "/dashboard", replace: true });
+    };
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/dashboard", replace: true });
+      if (data.session) go(data.session.user.email);
     });
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session) go(session.user.email);
+    });
+    return () => sub.subscription.unsubscribe();
   }, [navigate]);
 
   const handleEmail = async (e: React.FormEvent) => {
@@ -71,7 +79,7 @@ function AuthPage() {
         <div className="grid h-10 w-10 place-items-center rounded-2xl gradient-primary">
           <Droplet className="h-5 w-5 text-primary-foreground" />
         </div>
-        <span className="text-xl font-black">AquaFlow</span>
+        <span className="text-xl font-black">Pedirápido</span>
       </Link>
 
       <div className="w-full max-w-sm card-float p-6">
