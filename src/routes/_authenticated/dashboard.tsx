@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { getDashboard } from "@/lib/aquaflow.functions";
 import { formatBRL, daysUntil } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
-import { Bell, TrendingUp, Package, AlertTriangle, Sparkles } from "lucide-react";
+import { NovoPedidoModal } from "@/components/NovoPedidoModal";
+import { Bell, TrendingUp, Package, AlertTriangle, Sparkles, Plus, Shield } from "lucide-react";
 
 const dashOpts = queryOptions({
   queryKey: ["dashboard"],
@@ -20,48 +22,63 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function Dashboard() {
   const { data } = useSuspenseQuery(dashOpts);
+  const [showNovo, setShowNovo] = useState(false);
   const trialDays = daysUntil(data.distribuidora.trial_expires_at);
   const isFree = data.distribuidora.plano === "free";
   const usoPct = Math.min(100, Math.round((data.totalMes / data.limiteFree) * 100));
 
   return (
     <div className="space-y-4 p-4">
-      {/* Header */}
       <div className="flex items-center justify-between pt-2">
-        <div>
+        <div className="min-w-0">
           <p className="text-xs font-medium text-muted-foreground">Olá,</p>
           <h1 className="truncate text-xl font-black tracking-tight">{data.distribuidora.nome}</h1>
         </div>
-        <button className="grid h-11 w-11 place-items-center rounded-2xl bg-card shadow-soft" aria-label="Notificações">
-          <Bell className="h-5 w-5" />
-        </button>
+        <div className="flex gap-2">
+          {data.isAdminMaster && (
+            <Link to="/admin" className="grid h-11 w-11 place-items-center rounded-2xl gradient-primary text-primary-foreground shadow-soft" aria-label="Admin Master">
+              <Shield className="h-5 w-5" />
+            </Link>
+          )}
+          <button className="grid h-11 w-11 place-items-center rounded-2xl bg-card shadow-soft" aria-label="Notificações">
+            <Bell className="h-5 w-5" />
+          </button>
+        </div>
       </div>
 
-      {/* Trial banner */}
+      {/* CTA Novo Pedido */}
+      <button
+        onClick={() => setShowNovo(true)}
+        className="flex w-full items-center gap-3 rounded-2xl gradient-primary p-4 text-primary-foreground shadow-float transition-transform active:scale-[0.98]"
+      >
+        <div className="grid h-11 w-11 place-items-center rounded-2xl bg-primary-foreground/20">
+          <Plus className="h-6 w-6" strokeWidth={3} />
+        </div>
+        <div className="flex-1 text-left">
+          <div className="text-sm font-black">+ Novo pedido</div>
+          <div className="text-xs opacity-90">Venda balcão · PIX, Cartão ou Dinheiro</div>
+        </div>
+      </button>
+
       {isFree && trialDays > 0 && (
-        <Link to="/plano" className="flex items-center gap-3 rounded-2xl gradient-primary p-4 text-primary-foreground shadow-float">
-          <Sparkles className="h-6 w-6 shrink-0" />
+        <Link to="/plano" className="flex items-center gap-3 rounded-2xl bg-card p-4 shadow-soft ring-1 ring-primary/20">
+          <Sparkles className="h-5 w-5 shrink-0 text-primary" />
           <div className="min-w-0 flex-1">
             <div className="text-sm font-bold">Teste Pro grátis</div>
-            <div className="text-xs opacity-90">{trialDays} {trialDays === 1 ? "dia restante" : "dias restantes"}</div>
+            <div className="text-xs text-muted-foreground">{trialDays} {trialDays === 1 ? "dia restante" : "dias restantes"}</div>
           </div>
-          <span className="rounded-full bg-primary-foreground/20 px-3 py-1 text-xs font-bold">Ver</span>
+          <span className="rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground">Ver</span>
         </Link>
       )}
 
-      {/* KPIs */}
       <div className="grid grid-cols-2 gap-3">
         <div className="card-float p-4">
-          <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-            <TrendingUp className="h-4 w-4" /> Hoje
-          </div>
+          <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground"><TrendingUp className="h-4 w-4" /> Hoje</div>
           <div className="mt-2 text-2xl font-black tracking-tight">{formatBRL(data.receitaHoje)}</div>
           <div className="mt-1 text-xs text-muted-foreground">{data.totalHoje} pedidos</div>
         </div>
         <div className="card-float p-4">
-          <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-            <Package className="h-4 w-4" /> Este mês
-          </div>
+          <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground"><Package className="h-4 w-4" /> Este mês</div>
           <div className="mt-2 text-2xl font-black tracking-tight">{data.totalMes}</div>
           {isFree ? (
             <div className="mt-1">
@@ -70,20 +87,17 @@ function Dashboard() {
               </div>
               <div className="mt-1 text-[10px] text-muted-foreground">{data.totalMes}/{data.limiteFree} do plano Free</div>
             </div>
-          ) : (
-            <div className="mt-1 text-xs text-muted-foreground">pedidos ilimitados</div>
-          )}
+          ) : <div className="mt-1 text-xs text-muted-foreground">pedidos ilimitados</div>}
         </div>
       </div>
 
-      {/* Estoque baixo */}
       {data.estoqueBaixo.length > 0 && (
         <div className="rounded-2xl border border-status-preparing/30 bg-status-preparing-bg p-4">
           <div className="flex items-center gap-2 text-sm font-bold text-status-preparing">
             <AlertTriangle className="h-4 w-4" /> Estoque baixo
           </div>
           <ul className="mt-2 space-y-1 text-sm">
-            {data.estoqueBaixo.map((p) => (
+            {data.estoqueBaixo.map((p: any) => (
               <li key={p.id} className="flex justify-between"><span>{p.nome}</span><span className="font-bold">{p.estoque} un</span></li>
             ))}
           </ul>
@@ -91,17 +105,16 @@ function Dashboard() {
         </div>
       )}
 
-      {/* Pedidos ativos */}
       <div className="card-float">
         <div className="flex items-center justify-between p-4 pb-2">
           <h2 className="text-base font-bold">Pedidos ativos</h2>
           <Link to="/pedidos" className="text-xs font-semibold text-primary">Ver todos</Link>
         </div>
         {data.pedidosAtivos.length === 0 ? (
-          <div className="px-4 pb-5 text-sm text-muted-foreground">Nenhum pedido ativo. Envie o webhook para simular! 💧</div>
+          <div className="px-4 pb-5 text-sm text-muted-foreground">Nenhum pedido ativo. Toque em <b>+ Novo pedido</b> para começar 💧</div>
         ) : (
           <ul className="divide-y divide-border">
-            {data.pedidosAtivos.map((p) => (
+            {data.pedidosAtivos.map((p: any) => (
               <li key={p.id}>
                 <Link to="/pedidos/$id" params={{ id: p.id }} className="flex items-center justify-between gap-3 p-4 hover:bg-secondary/40">
                   <div className="min-w-0">
@@ -115,6 +128,8 @@ function Dashboard() {
           </ul>
         )}
       </div>
+
+      <NovoPedidoModal open={showNovo} onClose={() => setShowNovo(false)} />
     </div>
   );
 }

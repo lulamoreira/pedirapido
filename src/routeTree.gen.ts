@@ -16,8 +16,10 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as AuthenticatedPedidosRouteImport } from './routes/_authenticated/pedidos'
 import { Route as AuthenticatedEstoqueRouteImport } from './routes/_authenticated/estoque'
+import { Route as AuthenticatedEntregadoresRouteImport } from './routes/_authenticated/entregadores'
 import { Route as AuthenticatedEntregadorRouteImport } from './routes/_authenticated/entregador'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedPedidosIdRouteImport } from './routes/_authenticated/pedidos.$id'
 import { Route as ApiPublicWebhookWhatsappRouteImport } from './routes/api/public/webhook/whatsapp'
@@ -56,6 +58,12 @@ const AuthenticatedEstoqueRoute = AuthenticatedEstoqueRouteImport.update({
   path: '/estoque',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedEntregadoresRoute =
+  AuthenticatedEntregadoresRouteImport.update({
+    id: '/entregadores',
+    path: '/entregadores',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedEntregadorRoute = AuthenticatedEntregadorRouteImport.update({
   id: '/entregador',
   path: '/entregador',
@@ -66,6 +74,12 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedConfiguracoesRoute =
+  AuthenticatedConfiguracoesRouteImport.update({
+    id: '/configuracoes',
+    path: '/configuracoes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -88,8 +102,10 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/plano': typeof PlanoRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/entregador': typeof AuthenticatedEntregadorRoute
+  '/entregadores': typeof AuthenticatedEntregadoresRoute
   '/estoque': typeof AuthenticatedEstoqueRoute
   '/pedidos': typeof AuthenticatedPedidosRouteWithChildren
   '/perfil': typeof AuthenticatedPerfilRoute
@@ -101,8 +117,10 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/plano': typeof PlanoRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/entregador': typeof AuthenticatedEntregadorRoute
+  '/entregadores': typeof AuthenticatedEntregadoresRoute
   '/estoque': typeof AuthenticatedEstoqueRoute
   '/pedidos': typeof AuthenticatedPedidosRouteWithChildren
   '/perfil': typeof AuthenticatedPerfilRoute
@@ -116,8 +134,10 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/plano': typeof PlanoRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/entregador': typeof AuthenticatedEntregadorRoute
+  '/_authenticated/entregadores': typeof AuthenticatedEntregadoresRoute
   '/_authenticated/estoque': typeof AuthenticatedEstoqueRoute
   '/_authenticated/pedidos': typeof AuthenticatedPedidosRouteWithChildren
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
@@ -131,8 +151,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/plano'
     | '/admin'
+    | '/configuracoes'
     | '/dashboard'
     | '/entregador'
+    | '/entregadores'
     | '/estoque'
     | '/pedidos'
     | '/perfil'
@@ -144,8 +166,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/plano'
     | '/admin'
+    | '/configuracoes'
     | '/dashboard'
     | '/entregador'
+    | '/entregadores'
     | '/estoque'
     | '/pedidos'
     | '/perfil'
@@ -158,8 +182,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/plano'
     | '/_authenticated/admin'
+    | '/_authenticated/configuracoes'
     | '/_authenticated/dashboard'
     | '/_authenticated/entregador'
+    | '/_authenticated/entregadores'
     | '/_authenticated/estoque'
     | '/_authenticated/pedidos'
     | '/_authenticated/perfil'
@@ -226,6 +252,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEstoqueRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/entregadores': {
+      id: '/_authenticated/entregadores'
+      path: '/entregadores'
+      fullPath: '/entregadores'
+      preLoaderRoute: typeof AuthenticatedEntregadoresRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/entregador': {
       id: '/_authenticated/entregador'
       path: '/entregador'
@@ -238,6 +271,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/configuracoes': {
+      id: '/_authenticated/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/configuracoes'
+      preLoaderRoute: typeof AuthenticatedConfiguracoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin': {
@@ -277,8 +317,10 @@ const AuthenticatedPedidosRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedEntregadorRoute: typeof AuthenticatedEntregadorRoute
+  AuthenticatedEntregadoresRoute: typeof AuthenticatedEntregadoresRoute
   AuthenticatedEstoqueRoute: typeof AuthenticatedEstoqueRoute
   AuthenticatedPedidosRoute: typeof AuthenticatedPedidosRouteWithChildren
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
@@ -286,8 +328,10 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedEntregadorRoute: AuthenticatedEntregadorRoute,
+  AuthenticatedEntregadoresRoute: AuthenticatedEntregadoresRoute,
   AuthenticatedEstoqueRoute: AuthenticatedEstoqueRoute,
   AuthenticatedPedidosRoute: AuthenticatedPedidosRouteWithChildren,
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,

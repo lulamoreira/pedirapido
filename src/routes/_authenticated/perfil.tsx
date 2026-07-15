@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { getPlano } from "@/lib/aquaflow.functions";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, LogOut, Zap, Crown, Building2, Check } from "lucide-react";
+import { ArrowLeft, LogOut, Zap, Crown, Building2, Check, Bike, Settings, Shield, ChevronRight } from "lucide-react";
 import { daysUntil } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
@@ -27,9 +27,7 @@ function Perfil() {
   return (
     <div className="p-4 pb-8">
       <div className="flex items-center gap-3 pt-2">
-        <Link to="/dashboard" className="grid h-10 w-10 place-items-center rounded-2xl bg-card shadow-soft">
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
+        <Link to="/dashboard" className="grid h-10 w-10 place-items-center rounded-2xl bg-card shadow-soft"><ArrowLeft className="h-5 w-5" /></Link>
         <h1 className="text-xl font-black">Perfil & Plano</h1>
       </div>
 
@@ -38,17 +36,23 @@ function Perfil() {
           <div className="text-xs font-semibold uppercase text-muted-foreground">Distribuidora</div>
           <div className="mt-1 text-lg font-black">{data.distribuidora.nome}</div>
           <div className="mt-3 flex items-center justify-between">
-            <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold uppercase text-primary">
-              Plano {data.distribuidora.plano}
-            </span>
+            <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold uppercase text-primary">Plano {data.distribuidora.plano}</span>
             {data.distribuidora.plano === "free" && daysUntil(data.distribuidora.trial_expires_at) > 0 && (
-              <span className="text-xs text-muted-foreground">
-                Trial Pro: {daysUntil(data.distribuidora.trial_expires_at)}d
-              </span>
+              <span className="text-xs text-muted-foreground">Trial Pro: {daysUntil(data.distribuidora.trial_expires_at)}d</span>
             )}
           </div>
         </div>
       )}
+
+      {/* Menu de gestão */}
+      <h2 className="mt-6 text-sm font-bold uppercase tracking-wider text-muted-foreground">Gerenciar</h2>
+      <div className="mt-2 space-y-2">
+        <MenuLink to="/entregadores" icon={Bike} title="Equipe de entregadores" desc="Motoqueiros, motos e placas" />
+        <MenuLink to="/configuracoes" icon={Settings} title="Configurações da loja" desc="Horário, taxa e tempo de entrega" />
+        {data?.isAdminMaster && (
+          <MenuLink to="/admin" icon={Shield} title="Admin Master" desc="Painel global do SaaS" highlight />
+        )}
+      </div>
 
       <h2 className="mt-6 text-sm font-bold uppercase tracking-wider text-muted-foreground">Escolha seu plano</h2>
       <div className="mt-3 space-y-3">
@@ -58,9 +62,7 @@ function Perfil() {
           return (
             <div key={p.id} className={"card-float p-5 " + (("destaque" in p && p.destaque) ? "ring-2 ring-primary" : "")}>
               <div className="flex items-center gap-3">
-                <div className={"grid h-11 w-11 place-items-center rounded-2xl " + p.bg + " " + p.cor}>
-                  <Icon className="h-5 w-5" />
-                </div>
+                <div className={"grid h-11 w-11 place-items-center rounded-2xl " + p.bg + " " + p.cor}><Icon className="h-5 w-5" /></div>
                 <div className="flex-1">
                   <div className="text-base font-black">{p.nome}</div>
                   <div className="text-xs text-muted-foreground">{p.preco}</div>
@@ -68,9 +70,7 @@ function Perfil() {
                 {atual && <span className="rounded-full bg-status-paid-bg px-2 py-1 text-[10px] font-bold uppercase text-status-paid">Atual</span>}
               </div>
               <ul className="mt-3 space-y-1.5 text-sm">
-                {p.features.map((f) => (
-                  <li key={f} className="flex items-center gap-2"><Check className="h-4 w-4 text-status-paid" /> {f}</li>
-                ))}
+                {p.features.map((f) => <li key={f} className="flex items-center gap-2"><Check className="h-4 w-4 text-status-paid" /> {f}</li>)}
               </ul>
             </div>
           );
@@ -81,5 +81,20 @@ function Perfil() {
         <LogOut className="h-4 w-4" /> Sair
       </button>
     </div>
+  );
+}
+
+function MenuLink({ to, icon: Icon, title, desc, highlight }: { to: string; icon: any; title: string; desc: string; highlight?: boolean }) {
+  return (
+    <Link to={to} className={"card-float flex items-center gap-3 p-4 " + (highlight ? "ring-2 ring-primary" : "")}>
+      <div className={"grid h-11 w-11 place-items-center rounded-2xl " + (highlight ? "gradient-primary text-primary-foreground" : "bg-accent text-primary")}>
+        <Icon className="h-5 w-5" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="text-sm font-bold">{title}</div>
+        <div className="truncate text-xs text-muted-foreground">{desc}</div>
+      </div>
+      <ChevronRight className="h-5 w-5 text-muted-foreground" />
+    </Link>
   );
 }
