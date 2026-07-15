@@ -106,6 +106,8 @@ function ClientesPage() {
       </main>
 
       <BottomNav />
+      <NovoClienteModal open={openNovo} onOpenChange={setOpenNovo} />
+
     </div>
   );
 }
