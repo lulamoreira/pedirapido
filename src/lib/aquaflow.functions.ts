@@ -325,10 +325,13 @@ export const upsertEntregador = createServerFn({ method: "POST" })
     const distId = await getDistId(context.supabase, context.userId);
     if (!distId) throw new Error("Distribuidora não encontrada");
     const payload: any = {
-      nome: data.nome, telefone: data.telefone ?? null,
-      veiculo_modelo: data.veiculo_modelo ?? null, veiculo_placa: data.veiculo_placa ?? null,
+      nome: normalizeProperName(data.nome),
+      telefone: data.telefone ?? null,
+      veiculo_modelo: data.veiculo_modelo ? normalizeSentence(data.veiculo_modelo) : null,
+      veiculo_placa: data.veiculo_placa ? String(data.veiculo_placa).toUpperCase() : null,
       status: data.status,
     };
+
     if (data.id) {
       const { error } = await (context.supabase as any).from("entregadores").update(payload).eq("id", data.id);
       if (error) throw error;
