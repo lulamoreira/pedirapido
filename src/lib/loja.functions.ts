@@ -40,9 +40,20 @@ export const getLojaPublica = createServerFn({ method: "GET" })
       .select("dia_semana,horario_abertura,horario_fechamento,is_fechado_o_dia_todo")
       .eq("distribuidora_id", dist.id);
 
-    const now = new Date();
-    const dow = now.getDay();
-    const hhmm = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+    // Hora atual em America/Sao_Paulo (o worker roda em UTC)
+    const { dow, minutesNow, hhmm } = nowInSaoPaulo();
+
+    const toMin = (t: string) => {
+      const [h, m] = t.slice(0, 5).split(":").map(Number);
+      return (h || 0) * 60 + (m || 0);
+    };
+    const isBetween = (openStr: string, closeStr: string) => {
+      const open = toMin(openStr);
+      const close = toMin(closeStr);
+      // Horário que vira o dia (ex.: 22:00 → 06:00)
+      if (open >= close) return minutesNow >= open || minutesNow < close;
+      return minutesNow >= open && minutesNow < close;
+    };
 
     let aberto = false;
     let proximoDia: number | null = null;
@@ -50,11 +61,11 @@ export const getLojaPublica = createServerFn({ method: "GET" })
 
     const hoje = (horarios ?? []).find((h: any) => h.dia_semana === dow);
     if (hoje && !hoje.is_fechado_o_dia_todo && hoje.horario_abertura && hoje.horario_fechamento) {
-      aberto = hhmm >= hoje.horario_abertura.slice(0, 5) && hhmm <= hoje.horario_fechamento.slice(0, 5);
+      aberto = isBetween(hoje.horario_abertura, hoje.horario_fechamento);
     } else if (!horarios || horarios.length === 0) {
       // Fallback ao horário legado se não configurado
       const ha = (dist as any).horario_abertura, hf = (dist as any).horario_fechamento;
-      if (ha && hf) aberto = hhmm >= ha && hhmm <= hf;
+      if (ha && hf) aberto = isBetween(ha, hf);
     }
 
     if (!aberto) {
@@ -62,7 +73,7 @@ export const getLojaPublica = createServerFn({ method: "GET" })
         const d = (dow + i) % 7;
         const h = (horarios ?? []).find((x: any) => x.dia_semana === d);
         if (h && !h.is_fechado_o_dia_todo && h.horario_abertura) {
-          if (i === 0 && hhmm < h.horario_abertura.slice(0, 5)) {
+          if (i === 0 && minutesNow < toMin(h.horario_abertura)) {
             proximoDia = d; proximoHorario = h.horario_abertura.slice(0, 5); break;
           } else if (i > 0) {
             proximoDia = d; proximoHorario = h.horario_abertura.slice(0, 5); break;
@@ -70,6 +81,9 @@ export const getLojaPublica = createServerFn({ method: "GET" })
         }
       }
     }
+
+    void hhmm; // usado apenas para debug futuro
+
 
     return { distribuidora: { ...dist, aberto, proximoDia, proximoHorario }, produtos, isBusiness, horarios: horarios ?? [] };
   });
