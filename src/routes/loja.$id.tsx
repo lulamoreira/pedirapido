@@ -135,7 +135,7 @@ function LojaPage() {
           <div className="flex items-center gap-3">
             <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white shadow-soft overflow-hidden aspect-square">
               {d.logo_url ? (
-                <img src={d.logo_url} alt={d.nome} className="h-full w-full object-contain" />
+                <img src={d.logo_url} alt={nomeLoja} className="h-full w-full object-contain" />
               ) : (
                 <div className="grid h-full w-full place-items-center gradient-primary text-primary-foreground">
                   <Droplet className="h-5 w-5" />
@@ -143,7 +143,7 @@ function LojaPage() {
               )}
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="truncate text-lg font-black tracking-tight">{d.nome}</h1>
+              <h1 className="truncate text-lg font-black tracking-tight">{nomeLoja}</h1>
               <div className="mt-0.5 flex items-center gap-2 text-xs">
                 <span className={cn(
                   "inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-bold",
