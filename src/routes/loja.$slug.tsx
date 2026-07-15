@@ -396,12 +396,14 @@ function LojaPage() {
           isClosed={!d.aberto}
           proximoDia={d.proximoDia ?? null}
           proximoHorario={d.proximoHorario ?? null}
+          verificacaoExigida={!!d.verificacao_whatsapp}
           onClose={() => setCheckoutOpen(false)}
           onUpdateQty={updateQty}
           onRemove={removeItem}
           onSuccess={() => setCart([])}
         />
       )}
+
 
     </div>
   );
