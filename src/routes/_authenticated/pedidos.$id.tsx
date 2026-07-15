@@ -33,7 +33,11 @@ function PedidoDetail() {
 
   const assign = useMutation({
     mutationFn: (entregadorId: string | null) => assignEntregador({ data: { pedidoId: id, entregadorId } }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["pedido", id] }); toast.success("Entregador atualizado"); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["pedido", id] });
+      qc.invalidateQueries({ queryKey: ["notifs", id] });
+      toast.success("Entregador atualizado");
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
