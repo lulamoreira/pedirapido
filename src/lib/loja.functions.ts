@@ -163,6 +163,7 @@ export const checkoutLojaPublica = createServerFn({ method: "POST" })
     troco_para: z.number().positive().max(10000).nullish(),
     observacoes: z.string().max(300).optional(),
     is_pre_order: z.boolean().optional(),
+    verification_token: z.string().uuid().optional(),
   }).parse(d))
 
   .handler(async ({ data }) => {
@@ -170,11 +171,26 @@ export const checkoutLojaPublica = createServerFn({ method: "POST" })
 
     const { data: dist, error: eDist } = await supabaseAdmin
       .from("distribuidoras")
-      .select("id,nome,email,plano,taxa_entrega_padrao,telefone")
+      .select("id,nome,email,plano,taxa_entrega_padrao,telefone,verificacao_whatsapp")
       .eq("id", data.distribuidora_id)
       .maybeSingle();
     if (eDist) throw eDist;
     if (!dist) throw new Error("Loja não encontrada");
+
+    // Verificação por WhatsApp (rollout por loja)
+    if ((dist as any).verificacao_whatsapp === true) {
+      const { assertTelefoneVerificado } = await import("@/lib/otp.functions");
+      try {
+        await assertTelefoneVerificado({
+          distribuidora_id: dist.id,
+          telefone: data.cliente.telefone,
+          token: data.verification_token ?? null,
+        });
+      } catch {
+        throw new Error("Verifique seu telefone antes de finalizar.");
+      }
+    }
+
 
     // Upsert cliente
     const digits = data.cliente.telefone.replace(/\D/g, "");
