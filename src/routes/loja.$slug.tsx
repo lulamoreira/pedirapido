@@ -424,7 +424,7 @@ function CheckoutModal(p: CheckoutProps) {
         setNome(c.nome ?? "");
         if (c.endereco) {
           const enderecoStr = c.endereco;
-          // Tenta parsear "Rua, 123 — Bairro — Cidade — Ref: ..."
+          // Formato salvo: "Rua, 123 — Bairro — Cidade — Compl: X" (ou legado "Ref: ...")
           const parts = enderecoStr.split(" — ");
           if (parts[0]) {
             const [r, n] = parts[0].split(",").map(s => s.trim());
@@ -434,9 +434,11 @@ function CheckoutModal(p: CheckoutProps) {
           if (parts[1]) setBairro(parts[1]);
           if (parts[2]) setCidade(parts[2]);
         }
+        if ((c as any).complemento) setComplemento((c as any).complemento);
         if (c.cep) setCep(maskCep(c.cep));
         toast.success("Bem-vindo(a) de volta! 👋");
       }
+
     } catch { /* ignore */ }
     finally { setBuscandoCli(false); }
   }
