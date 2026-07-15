@@ -187,32 +187,16 @@ function LojaPage() {
             </div>
 
             <div className="min-w-0 flex-1">
-              <h1 className="truncate text-lg font-black tracking-tight">{nomeLoja}</h1>
-              <div className="mt-0.5 flex items-center gap-2 text-xs">
-                <span className={cn(
-                  "inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-bold",
-                  d.aberto ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
-                )}>
-                  <span className={cn("h-1.5 w-1.5 rounded-full", d.aberto ? "bg-emerald-500" : "bg-red-500")} />
-                  {d.aberto ? "Aberto agora" : "Fechado"}
-                </span>
-                <span className="flex items-center gap-1 text-muted-foreground">
-                  <Clock className="h-3 w-3" /> ~{d.tempo_estimado_min} min
-                </span>
-              </div>
-              {(d.logradouro || d.cidade) && (
-                <p className="mt-1 flex items-start gap-1 text-[11px] text-muted-foreground">
-                  <MapPin className="h-3 w-3 mt-0.5 shrink-0" />
-                  <span className="truncate">
-                    {[
-                      d.logradouro && d.numero ? `${d.logradouro}, ${d.numero}` : d.logradouro,
-                      d.bairro,
-                      d.cidade && d.uf ? `${d.cidade}/${d.uf}` : d.cidade,
-                    ].filter(Boolean).join(" · ")}
-                  </span>
-                </p>
-              )}
+              <h2 className="truncate text-sm font-black tracking-tight">{nomeLoja}</h2>
+              <span className={cn(
+                "mt-0.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold",
+                d.aberto ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
+              )}>
+                <span className={cn("h-1.5 w-1.5 rounded-full", d.aberto ? "bg-emerald-500" : "bg-red-500")} />
+                {d.aberto ? "Aberto" : "Fechado"}
+              </span>
             </div>
+
           </div>
 
 
