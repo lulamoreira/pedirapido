@@ -224,8 +224,36 @@ export const checkoutLojaPublica = createServerFn({ method: "POST" })
       await supabaseAdmin.from("produtos").update({ estoque: novoEstoque }).eq("id", it.produto_id);
     }
 
+    // Notifica o WhatsApp do lojista quando é pré-pedido (loja fechada)
+    if (isPreOrder) {
+      try {
+        const telLojista = (dist as any).telefone as string | null;
+        if (telLojista) {
+          const { sendWhatsApp } = await import("@/lib/whatsapp.server");
+          const nomeCli = data.cliente.nome?.trim() || "Cliente";
+          const msg =
+            `🚨 NOVO PRÉ-PEDIDO RECEBIDO!\n\n` +
+            `O cliente ${nomeCli} acabou de realizar um pedido de R$ ${total.toFixed(2)} ` +
+            `enquanto a loja está fechada. O pedido já foi reservado na sua fila de prioridade para a próxima abertura! 🚀`;
+          const r = await sendWhatsApp(telLojista, msg);
+          await supabaseAdmin.from("notificacoes_whatsapp").insert({
+            distribuidora_id: dist.id,
+            pedido_id: pedido.id,
+            tipo: "pre_pedido_lojista",
+            telefone: telLojista,
+            mensagem: msg,
+            status: r.status,
+            provider_response: r.response as any,
+          });
+        }
+      } catch (err) {
+        console.error("[pre-order] falha ao notificar lojista", err);
+      }
+    }
+
     return { id: pedido.id, status, total, codigo_pix };
   });
+
 
 // -------- Acompanhamento público de pedido --------
 export const getPedidoPublico = createServerFn({ method: "GET" })
