@@ -548,21 +548,24 @@ export const createManualPedido = createServerFn({ method: "POST" })
     const { data: existing } = await supabase.from("clientes").select("id")
       .eq("distribuidora_id", dist.id).eq("telefone", telDigits).maybeSingle();
     let clienteId = existing?.id as string | undefined;
+    const clienteNomeNorm = normalizeProperName(data.cliente.nome);
+    const clienteEndNorm = data.cliente.endereco ? normalizeSentence(data.cliente.endereco) : null;
     if (clienteId) {
       await supabase.from("clientes").update({
-        nome: data.cliente.nome,
-        endereco: data.cliente.endereco ?? null,
+        nome: clienteNomeNorm,
+        endereco: clienteEndNorm,
       }).eq("id", clienteId);
     } else {
       const { data: novo, error: errCli } = await supabase.from("clientes").insert({
         distribuidora_id: dist.id,
-        nome: data.cliente.nome,
+        nome: clienteNomeNorm,
         telefone: telDigits,
-        endereco: data.cliente.endereco ?? null,
+        endereco: clienteEndNorm,
       }).select("id").single();
       if (errCli) throw errCli;
       clienteId = novo.id;
     }
+
 
     // Produtos & subtotal
     const ids = data.itens.map(i => i.produto_id);
