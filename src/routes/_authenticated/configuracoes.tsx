@@ -133,6 +133,7 @@ function ConfigPage() {
           cidade: form.cidade || null,
           uf: form.uf ? form.uf.toUpperCase().slice(0, 2) : null,
           logo_url: logoDataUrl,
+          slug: form.slug ? form.slug.trim() : null,
         },
       });
     },
