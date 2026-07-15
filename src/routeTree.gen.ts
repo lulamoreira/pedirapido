@@ -23,6 +23,7 @@ import { Route as AuthenticatedEntregadorRouteImport } from './routes/_authentic
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
+import { Route as AuthenticatedAjudaRouteImport } from './routes/_authenticated/ajuda'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as PedidoIdStatusRouteImport } from './routes/pedido.$id.status'
 import { Route as AuthenticatedPedidosIdRouteImport } from './routes/_authenticated/pedidos.$id'
@@ -99,6 +100,11 @@ const AuthenticatedClientesRoute = AuthenticatedClientesRouteImport.update({
   path: '/clientes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAjudaRoute = AuthenticatedAjudaRouteImport.update({
+  id: '/ajuda',
+  path: '/ajuda',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -126,6 +132,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/plano': typeof PlanoRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/ajuda': typeof AuthenticatedAjudaRoute
   '/clientes': typeof AuthenticatedClientesRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -145,6 +152,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/plano': typeof PlanoRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/ajuda': typeof AuthenticatedAjudaRoute
   '/clientes': typeof AuthenticatedClientesRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -166,6 +174,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/plano': typeof PlanoRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/ajuda': typeof AuthenticatedAjudaRoute
   '/_authenticated/clientes': typeof AuthenticatedClientesRoute
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -187,6 +196,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/plano'
     | '/admin'
+    | '/ajuda'
     | '/clientes'
     | '/configuracoes'
     | '/dashboard'
@@ -206,6 +216,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/plano'
     | '/admin'
+    | '/ajuda'
     | '/clientes'
     | '/configuracoes'
     | '/dashboard'
@@ -226,6 +237,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/plano'
     | '/_authenticated/admin'
+    | '/_authenticated/ajuda'
     | '/_authenticated/clientes'
     | '/_authenticated/configuracoes'
     | '/_authenticated/dashboard'
@@ -351,6 +363,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/ajuda': {
+      id: '/_authenticated/ajuda'
+      path: '/ajuda'
+      fullPath: '/ajuda'
+      preLoaderRoute: typeof AuthenticatedAjudaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -395,6 +414,7 @@ const AuthenticatedPedidosRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAjudaRoute: typeof AuthenticatedAjudaRoute
   AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
   AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
@@ -407,6 +427,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAjudaRoute: AuthenticatedAjudaRoute,
   AuthenticatedClientesRoute: AuthenticatedClientesRoute,
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,

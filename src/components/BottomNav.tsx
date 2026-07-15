@@ -18,7 +18,7 @@ export function BottomNav() {
   const { user } = useSessionUser();
   const showAdmin = isMasterEmail(user?.email);
   const items = showAdmin
-    ? [...BASE.slice(0, 4), { to: "/admin", label: "Admin", icon: Shield } as const, BASE[4]]
+    ? [...BASE.slice(0, 4), { to: "/admin", label: "Admin", icon: Shield } as const, ...BASE.slice(4)]
     : BASE;
 
   return (
