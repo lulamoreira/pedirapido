@@ -254,6 +254,15 @@ function LojaPage() {
         )}
       </main>
 
+      {/* Rodapé fiscal — Razão Social + CNPJ */}
+      {(d.razao_social || d.cnpj) && (
+        <footer className="mx-auto max-w-lg px-4 pt-2 pb-8 text-center text-[10px] leading-relaxed text-muted-foreground">
+          {d.razao_social && <div className="font-semibold">{d.razao_social}</div>}
+          {d.cnpj && <div>CNPJ: {maskCnpj(String(d.cnpj))}</div>}
+        </footer>
+      )}
+
+
       {/* Sticky bottom cart */}
       {qtyTotal > 0 && (
         <div className="fixed inset-x-0 bottom-0 z-40 px-4 pb-4 pt-2 bg-gradient-to-t from-[#F7F9FC] to-transparent">
