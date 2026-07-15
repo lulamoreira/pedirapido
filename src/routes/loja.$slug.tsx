@@ -2,7 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
-import { formatVolume, displayNomeLoja } from "@/lib/format";
+import { displayNomeLoja } from "@/lib/format";
+import { formatProdutoLinha } from "@/lib/text-normalize";
+
 import { maskCnpj } from "@/lib/br-utils";
 import { toast } from "sonner";
 import {
