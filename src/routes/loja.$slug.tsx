@@ -601,6 +601,7 @@ function CheckoutModal(p: CheckoutProps) {
           forma_pagamento: forma,
           troco_para: forma === "dinheiro" && troco ? Number(troco.replace(",", ".")) : null,
           is_pre_order: p.isClosed,
+          verification_token: token ?? undefined,
         },
 
       });
