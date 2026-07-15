@@ -254,12 +254,53 @@ function LojaPage() {
                       )}
                     >
                       <Icon className="h-3.5 w-3.5" /> {meta.label}
+          {/* Categorias */}
+          {categorias.length > 1 && (
+            <div className="mt-3 -mx-4 px-4 overflow-x-auto scrollbar-hide">
+              <div className="flex gap-2 pb-1">
+                {categorias.map(c => {
+                  const meta = CAT_META[c] ?? { label: c, icon: Sparkles };
+                  const Icon = meta.icon;
+                  const active = catAtiva === c;
+                  return (
+                    <button
+                      key={c}
+                      onClick={() => setCatAtiva(c)}
+                      className={cn(
+                        "shrink-0 flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-black transition",
+                        active
+                          ? "gradient-primary text-primary-foreground shadow-soft"
+                          : "bg-secondary text-foreground"
+                      )}
+                    >
+                      <Icon className="h-3.5 w-3.5" /> {meta.label}
                     </button>
                   );
                 })}
               </div>
             </div>
           )}
+
+          {/* Busca */}
+          <div className="mt-3 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              placeholder="Buscar produto…"
+              className="w-full rounded-full border border-border bg-white pl-9 pr-9 py-2 text-sm outline-none focus:border-primary"
+            />
+            {busca && (
+              <button
+                onClick={() => setBusca("")}
+                aria-label="Limpar busca"
+                className="absolute right-2 top-1/2 -translate-y-1/2 grid h-6 w-6 place-items-center rounded-full bg-secondary text-muted-foreground"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
