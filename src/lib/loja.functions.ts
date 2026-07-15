@@ -10,7 +10,7 @@ export const getLojaPublica = createServerFn({ method: "GET" })
 
     const { data: dist, error } = await supabaseAdmin
       .from("distribuidoras")
-      .select("id,nome,telefone,plano,taxa_entrega_padrao,horario_abertura,horario_fechamento,tempo_estimado_min,status_assinatura")
+      .select("id,nome,telefone,plano,taxa_entrega_padrao,horario_abertura,horario_fechamento,tempo_estimado_min,status_assinatura,logo_url,logradouro,numero,complemento,bairro,cidade,uf,cep")
       .eq("id", data.id)
       .maybeSingle();
     if (error) throw error;
