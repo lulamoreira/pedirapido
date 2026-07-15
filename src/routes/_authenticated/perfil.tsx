@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { getPlano } from "@/lib/aquaflow.functions";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, LogOut, Zap, Crown, Building2, Check, Bike, Settings, Shield, ChevronRight } from "lucide-react";
+import { ArrowLeft, LogOut, Zap, Crown, Building2, Check, Bike, Settings, Shield, ChevronRight, LifeBuoy } from "lucide-react";
 import { daysUntil } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
