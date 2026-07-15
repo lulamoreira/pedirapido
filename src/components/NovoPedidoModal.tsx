@@ -20,7 +20,7 @@ export function NovoPedidoModal({ open, onClose }: { open: boolean; onClose: () 
   const [forma, setForma] = useState<"pix" | "cartao" | "dinheiro">("pix");
   const [obs, setObs] = useState("");
 
-  const reset = () => { setTelefone(""); setNome(""); setEndereco(""); setItens([]); setForma("pix"); setObs(""); };
+  const reset = () => { setTelefone(""); setNome(""); setEndereco(""); setItens([]); setForma("pix"); setObs(""); setClienteState("idle"); };
 
   const [clienteState, setClienteState] = useState<"idle" | "found" | "new">("idle");
 
