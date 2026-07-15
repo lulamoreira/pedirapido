@@ -37,22 +37,23 @@ export const Route = createFileRoute("/api/public/webhook/whatsapp")({
             if ((count ?? 0) >= 50) return json({ error: "Limite do plano Free atingido (50 pedidos/mês)" }, 402);
           }
 
-          // Upsert cliente
+          // Upsert cliente (normaliza telefone para só dígitos)
+          const telDigits = input.cliente.telefone.replace(/\D/g, "");
           const { data: existing } = await supabaseAdmin.from("clientes")
-            .select("id").eq("distribuidora_id", dist.id).eq("telefone", input.cliente.telefone).maybeSingle();
+            .select("id").eq("distribuidora_id", dist.id).eq("telefone", telDigits).maybeSingle();
           let clienteId = existing?.id;
           if (!clienteId) {
             const { data: novo, error } = await supabaseAdmin.from("clientes").insert({
               distribuidora_id: dist.id,
               nome: input.cliente.nome,
-              telefone: input.cliente.telefone,
+              telefone: telDigits,
               endereco: input.cliente.endereco ?? null,
             }).select("id").single();
             if (error) return json({ error: error.message }, 400);
             clienteId = novo.id;
-          } else if (input.cliente.endereco) {
+          } else if (input.cliente.endereco || input.cliente.nome) {
             await supabaseAdmin.from("clientes").update({
-              nome: input.cliente.nome, endereco: input.cliente.endereco,
+              nome: input.cliente.nome, endereco: input.cliente.endereco ?? null,
             }).eq("id", clienteId);
           }
 
