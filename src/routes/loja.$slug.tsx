@@ -593,6 +593,15 @@ function CheckoutModal(p: CheckoutProps) {
                   <Input value={numero} onChange={(e) => setNumero(e.target.value)} className="mt-1 rounded-2xl h-11" />
                 </div>
               </div>
+              <div>
+                <Label className="text-xs font-bold">Complemento (opcional)</Label>
+                <Input
+                  value={complemento}
+                  onChange={(e) => setComplemento(e.target.value)}
+                  placeholder="Ex: Apto 12, Bloco B, Casa fundos..."
+                  className="mt-1 rounded-2xl h-11"
+                />
+              </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <Label className="text-xs font-bold">Bairro *</Label>
@@ -604,9 +613,15 @@ function CheckoutModal(p: CheckoutProps) {
                 </div>
               </div>
               <div>
-                <Label className="text-xs font-bold flex items-center gap-1"><MapPin className="h-3 w-3" /> Ponto de referência</Label>
-                <Input value={complemento} onChange={(e) => setComplemento(e.target.value)} placeholder="Apto 12, próximo ao mercado..." className="mt-1 rounded-2xl h-11" />
+                <Label className="text-xs font-bold flex items-center gap-1"><MapPin className="h-3 w-3" /> Ponto de referência (opcional)</Label>
+                <Input
+                  value={referencia}
+                  onChange={(e) => setReferencia(e.target.value)}
+                  placeholder="Ex: Próximo ao mercado, portão azul..."
+                  className="mt-1 rounded-2xl h-11"
+                />
               </div>
+
             </div>
           )}
 
