@@ -131,19 +131,61 @@ function LojaPage() {
 
   return (
     <div className="min-h-screen bg-[#F7F9FC] pb-32">
-      {/* Header */}
+      {/* Hero com logo em destaque */}
+      <section className="relative overflow-hidden gradient-primary text-primary-foreground">
+        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_20%_20%,white,transparent_40%),radial-gradient(circle_at_80%_60%,white,transparent_35%)]" />
+        <div className="relative mx-auto max-w-lg px-4 pt-8 pb-6 flex flex-col items-center text-center">
+          <div className="grid h-28 w-28 md:h-32 md:w-32 place-items-center rounded-3xl bg-white shadow-float overflow-hidden aspect-square ring-4 ring-white/30">
+            {d.logo_url ? (
+              <img src={d.logo_url} alt={nomeLoja} className="h-full w-full object-contain" />
+            ) : (
+              <div className="grid h-full w-full place-items-center gradient-primary text-primary-foreground">
+                <Droplet className="h-10 w-10" />
+              </div>
+            )}
+          </div>
+          <h1 className="mt-3 text-2xl font-black tracking-tight">{nomeLoja}</h1>
+          <div className="mt-1.5 flex items-center gap-2 text-xs">
+            <span className={cn(
+              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-bold",
+              d.aberto ? "bg-emerald-500/90 text-white" : "bg-red-500/90 text-white"
+            )}>
+              <span className="h-1.5 w-1.5 rounded-full bg-white" />
+              {d.aberto ? "Aberto agora" : "Fechado"}
+            </span>
+            <span className="flex items-center gap-1 text-white/90">
+              <Clock className="h-3 w-3" /> ~{d.tempo_estimado_min} min
+            </span>
+          </div>
+          {(d.logradouro || d.cidade) && (
+            <p className="mt-2 flex items-start gap-1 text-[11px] text-white/85 max-w-xs">
+              <MapPin className="h-3 w-3 mt-0.5 shrink-0" />
+              <span>
+                {[
+                  d.logradouro && d.numero ? `${d.logradouro}, ${d.numero}` : d.logradouro,
+                  d.bairro,
+                  d.cidade && d.uf ? `${d.cidade}/${d.uf}` : d.cidade,
+                ].filter(Boolean).join(" · ")}
+              </span>
+            </p>
+          )}
+        </div>
+      </section>
+
+      {/* Header sticky compacto */}
       <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-border">
-        <div className="mx-auto max-w-lg px-4 py-4">
+        <div className="mx-auto max-w-lg px-4 py-3">
           <div className="flex items-center gap-3">
-            <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white shadow-soft overflow-hidden aspect-square">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white shadow-soft overflow-hidden aspect-square">
               {d.logo_url ? (
                 <img src={d.logo_url} alt={nomeLoja} className="h-full w-full object-contain" />
               ) : (
                 <div className="grid h-full w-full place-items-center gradient-primary text-primary-foreground">
-                  <Droplet className="h-5 w-5" />
+                  <Droplet className="h-4 w-4" />
                 </div>
               )}
             </div>
+
             <div className="min-w-0 flex-1">
               <h1 className="truncate text-lg font-black tracking-tight">{nomeLoja}</h1>
               <div className="mt-0.5 flex items-center gap-2 text-xs">
