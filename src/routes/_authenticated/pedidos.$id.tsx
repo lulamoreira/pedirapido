@@ -27,6 +27,7 @@ function PedidoDetail() {
       qc.invalidateQueries({ queryKey: ["pedidos"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       qc.invalidateQueries({ queryKey: ["entregas"] });
+      qc.invalidateQueries({ queryKey: ["notifs", id] });
     },
   });
 
