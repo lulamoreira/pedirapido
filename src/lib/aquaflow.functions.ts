@@ -335,7 +335,15 @@ export const deleteEntregador = createServerFn({ method: "POST" })
 // -------- Configurações da distribuidora --------
 export const updateDistribuidoraConfig = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { nome: string; telefone?: string; horario_abertura: string; horario_fechamento: string; taxa_entrega_padrao: number; tempo_estimado_min: number }) =>
+  .inputValidator((d: {
+    nome: string; telefone?: string;
+    horario_abertura: string; horario_fechamento: string;
+    taxa_entrega_padrao: number; tempo_estimado_min: number;
+    cnpj?: string | null;
+    cep?: string | null; logradouro?: string | null; numero?: string | null;
+    complemento?: string | null; bairro?: string | null; cidade?: string | null; uf?: string | null;
+    logo_url?: string | null;
+  }) =>
     z.object({
       nome: z.string().min(2).max(80),
       telefone: z.string().max(20).optional(),
@@ -343,16 +351,32 @@ export const updateDistribuidoraConfig = createServerFn({ method: "POST" })
       horario_fechamento: z.string().regex(/^\d{2}:\d{2}$/),
       taxa_entrega_padrao: z.number().min(0).max(999),
       tempo_estimado_min: z.number().int().min(5).max(600),
+      cnpj: z.string().max(20).nullish(),
+      cep: z.string().max(12).nullish(),
+      logradouro: z.string().max(200).nullish(),
+      numero: z.string().max(20).nullish(),
+      complemento: z.string().max(120).nullish(),
+      bairro: z.string().max(120).nullish(),
+      cidade: z.string().max(120).nullish(),
+      uf: z.string().max(2).nullish(),
+      logo_url: z.string().max(500000).nullish(),
     }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("distribuidoras").update({
+    const payload: Record<string, unknown> = {
       nome: data.nome, telefone: data.telefone ?? null,
       horario_abertura: data.horario_abertura, horario_fechamento: data.horario_fechamento,
       taxa_entrega_padrao: data.taxa_entrega_padrao, tempo_estimado_min: data.tempo_estimado_min,
-    } as any).eq("owner_user_id", context.userId);
+      cnpj: data.cnpj ?? null,
+      cep: data.cep ?? null, logradouro: data.logradouro ?? null, numero: data.numero ?? null,
+      complemento: data.complemento ?? null, bairro: data.bairro ?? null,
+      cidade: data.cidade ?? null, uf: data.uf ?? null,
+    };
+    if (data.logo_url !== undefined) payload.logo_url = data.logo_url;
+    const { error } = await context.supabase.from("distribuidoras").update(payload as never).eq("owner_user_id", context.userId);
     if (error) throw error;
     return { ok: true };
   });
+
 
 // -------- Buscar cliente por telefone (PDV) --------
 export const searchClienteByPhone = createServerFn({ method: "POST" })

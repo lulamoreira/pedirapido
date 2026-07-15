@@ -126,8 +126,14 @@ function LojaPage() {
       <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-border">
         <div className="mx-auto max-w-lg px-4 py-4">
           <div className="flex items-center gap-3">
-            <div className="grid h-12 w-12 place-items-center rounded-2xl gradient-primary text-primary-foreground shadow-soft shrink-0">
-              <Droplet className="h-5 w-5" />
+            <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white shadow-soft overflow-hidden aspect-square">
+              {d.logo_url ? (
+                <img src={d.logo_url} alt={d.nome} className="h-full w-full object-contain" />
+              ) : (
+                <div className="grid h-full w-full place-items-center gradient-primary text-primary-foreground">
+                  <Droplet className="h-5 w-5" />
+                </div>
+              )}
             </div>
             <div className="min-w-0 flex-1">
               <h1 className="truncate text-lg font-black tracking-tight">{d.nome}</h1>
@@ -143,8 +149,21 @@ function LojaPage() {
                   <Clock className="h-3 w-3" /> ~{d.tempo_estimado_min} min
                 </span>
               </div>
+              {(d.logradouro || d.cidade) && (
+                <p className="mt-1 flex items-start gap-1 text-[11px] text-muted-foreground">
+                  <MapPin className="h-3 w-3 mt-0.5 shrink-0" />
+                  <span className="truncate">
+                    {[
+                      d.logradouro && d.numero ? `${d.logradouro}, ${d.numero}` : d.logradouro,
+                      d.bairro,
+                      d.cidade && d.uf ? `${d.cidade}/${d.uf}` : d.cidade,
+                    ].filter(Boolean).join(" · ")}
+                  </span>
+                </p>
+              )}
             </div>
           </div>
+
 
           {/* Categorias */}
           {categorias.length > 1 && (

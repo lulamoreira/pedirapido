@@ -54,12 +54,20 @@ export type Database = {
       }
       distribuidoras: {
         Row: {
+          bairro: string | null
+          cep: string | null
+          cidade: string | null
+          cnpj: string | null
+          complemento: string | null
           created_at: string
           email: string
           horario_abertura: string
           horario_fechamento: string
           id: string
+          logo_url: string | null
+          logradouro: string | null
           nome: string
+          numero: string | null
           owner_user_id: string
           plano: Database["public"]["Enums"]["plano_tipo"]
           status_assinatura: Database["public"]["Enums"]["status_assinatura_tipo"]
@@ -67,15 +75,24 @@ export type Database = {
           telefone: string | null
           tempo_estimado_min: number
           trial_expires_at: string
+          uf: string | null
           updated_at: string
         }
         Insert: {
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          cnpj?: string | null
+          complemento?: string | null
           created_at?: string
           email: string
           horario_abertura?: string
           horario_fechamento?: string
           id?: string
+          logo_url?: string | null
+          logradouro?: string | null
           nome: string
+          numero?: string | null
           owner_user_id: string
           plano?: Database["public"]["Enums"]["plano_tipo"]
           status_assinatura?: Database["public"]["Enums"]["status_assinatura_tipo"]
@@ -83,15 +100,24 @@ export type Database = {
           telefone?: string | null
           tempo_estimado_min?: number
           trial_expires_at?: string
+          uf?: string | null
           updated_at?: string
         }
         Update: {
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          cnpj?: string | null
+          complemento?: string | null
           created_at?: string
           email?: string
           horario_abertura?: string
           horario_fechamento?: string
           id?: string
+          logo_url?: string | null
+          logradouro?: string | null
           nome?: string
+          numero?: string | null
           owner_user_id?: string
           plano?: Database["public"]["Enums"]["plano_tipo"]
           status_assinatura?: Database["public"]["Enums"]["status_assinatura_tipo"]
@@ -99,6 +125,7 @@ export type Database = {
           telefone?: string | null
           tempo_estimado_min?: number
           trial_expires_at?: string
+          uf?: string | null
           updated_at?: string
         }
         Relationships: []
