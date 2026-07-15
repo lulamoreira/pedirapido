@@ -50,6 +50,7 @@ function ConfigPage() {
         razao_social: String(d.razao_social ?? ""),
         telefone: String(d.telefone ?? ""),
         cnpj: d.cnpj ? maskCnpj(String(d.cnpj)) : "",
+        slug: String(d.slug ?? ""),
         horario_abertura: String(d.horario_abertura ?? "08:00"),
         horario_fechamento: String(d.horario_fechamento ?? "18:00"),
         taxa_entrega_padrao: Number(d.taxa_entrega_padrao ?? 0),
