@@ -67,12 +67,12 @@ export const Route = createFileRoute("/api/public/webhook/whatsapp")({
             const prod = produtos.find(p => p.id === it.produto_id)!;
             const sub = Number(prod.preco) * it.quantidade;
             subtotal += sub;
-            return { produto_id: prod.id, quantidade: it.quantidade, preco_unitario: prod.preco, subtotal: sub };
+            return { produto_id: prod.id, quantidade: it.quantidade, preco_unit: Number(prod.preco), subtotal: sub };
           });
 
           const taxa = input.taxa_entrega ?? 0;
           const total = subtotal + taxa;
-          const codigoPix = gerarCodigoPix({ chave: dist.pix_chave ?? "aquaflow@demo.com.br", nome: dist.nome, cidade: "SAO PAULO", valor: total });
+          const codigoPix = generatePixCode({ chave: dist.email ?? "aquaflow@demo.com.br", nome: dist.nome, cidade: "SAO PAULO", valor: total });
 
           const { data: pedido, error: perr } = await supabaseAdmin.from("pedidos").insert({
             distribuidora_id: dist.id,
