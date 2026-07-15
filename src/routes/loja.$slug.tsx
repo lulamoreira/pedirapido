@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/loja/$id")({
+export const Route = createFileRoute("/loja/$slug")({
   head: () => ({
     meta: [
       { title: "Cardápio — Pedirápido" },

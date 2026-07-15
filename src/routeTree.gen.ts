@@ -14,7 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PedidoIdRouteImport } from './routes/pedido.$id'
-import { Route as LojaIdRouteImport } from './routes/loja.$id'
+import { Route as LojaSlugRouteImport } from './routes/loja.$slug'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as AuthenticatedPedidosRouteImport } from './routes/_authenticated/pedidos'
 import { Route as AuthenticatedEstoqueRouteImport } from './routes/_authenticated/estoque'
@@ -52,9 +52,9 @@ const PedidoIdRoute = PedidoIdRouteImport.update({
   path: '/pedido/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LojaIdRoute = LojaIdRouteImport.update({
-  id: '/loja/$id',
-  path: '/loja/$id',
+const LojaSlugRoute = LojaSlugRouteImport.update({
+  id: '/loja/$slug',
+  path: '/loja/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedPerfilRoute = AuthenticatedPerfilRouteImport.update({
@@ -134,7 +134,7 @@ export interface FileRoutesByFullPath {
   '/estoque': typeof AuthenticatedEstoqueRoute
   '/pedidos': typeof AuthenticatedPedidosRouteWithChildren
   '/perfil': typeof AuthenticatedPerfilRoute
-  '/loja/$id': typeof LojaIdRoute
+  '/loja/$slug': typeof LojaSlugRoute
   '/pedido/$id': typeof PedidoIdRouteWithChildren
   '/pedidos/$id': typeof AuthenticatedPedidosIdRoute
   '/pedido/$id/status': typeof PedidoIdStatusRoute
@@ -153,7 +153,7 @@ export interface FileRoutesByTo {
   '/estoque': typeof AuthenticatedEstoqueRoute
   '/pedidos': typeof AuthenticatedPedidosRouteWithChildren
   '/perfil': typeof AuthenticatedPerfilRoute
-  '/loja/$id': typeof LojaIdRoute
+  '/loja/$slug': typeof LojaSlugRoute
   '/pedido/$id': typeof PedidoIdRouteWithChildren
   '/pedidos/$id': typeof AuthenticatedPedidosIdRoute
   '/pedido/$id/status': typeof PedidoIdStatusRoute
@@ -174,7 +174,7 @@ export interface FileRoutesById {
   '/_authenticated/estoque': typeof AuthenticatedEstoqueRoute
   '/_authenticated/pedidos': typeof AuthenticatedPedidosRouteWithChildren
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
-  '/loja/$id': typeof LojaIdRoute
+  '/loja/$slug': typeof LojaSlugRoute
   '/pedido/$id': typeof PedidoIdRouteWithChildren
   '/_authenticated/pedidos/$id': typeof AuthenticatedPedidosIdRoute
   '/pedido/$id/status': typeof PedidoIdStatusRoute
@@ -195,7 +195,7 @@ export interface FileRouteTypes {
     | '/estoque'
     | '/pedidos'
     | '/perfil'
-    | '/loja/$id'
+    | '/loja/$slug'
     | '/pedido/$id'
     | '/pedidos/$id'
     | '/pedido/$id/status'
@@ -214,7 +214,7 @@ export interface FileRouteTypes {
     | '/estoque'
     | '/pedidos'
     | '/perfil'
-    | '/loja/$id'
+    | '/loja/$slug'
     | '/pedido/$id'
     | '/pedidos/$id'
     | '/pedido/$id/status'
@@ -234,7 +234,7 @@ export interface FileRouteTypes {
     | '/_authenticated/estoque'
     | '/_authenticated/pedidos'
     | '/_authenticated/perfil'
-    | '/loja/$id'
+    | '/loja/$slug'
     | '/pedido/$id'
     | '/_authenticated/pedidos/$id'
     | '/pedido/$id/status'
@@ -246,7 +246,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   PlanoRoute: typeof PlanoRoute
-  LojaIdRoute: typeof LojaIdRoute
+  LojaSlugRoute: typeof LojaSlugRoute
   PedidoIdRoute: typeof PedidoIdRouteWithChildren
   ApiPublicWebhookWhatsappRoute: typeof ApiPublicWebhookWhatsappRoute
 }
@@ -288,11 +288,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PedidoIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/loja/$id': {
-      id: '/loja/$id'
-      path: '/loja/$id'
-      fullPath: '/loja/$id'
-      preLoaderRoute: typeof LojaIdRouteImport
+    '/loja/$slug': {
+      id: '/loja/$slug'
+      path: '/loja/$slug'
+      fullPath: '/loja/$slug'
+      preLoaderRoute: typeof LojaSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/perfil': {
@@ -437,7 +437,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   PlanoRoute: PlanoRoute,
-  LojaIdRoute: LojaIdRoute,
+  LojaSlugRoute: LojaSlugRoute,
   PedidoIdRoute: PedidoIdRouteWithChildren,
   ApiPublicWebhookWhatsappRoute: ApiPublicWebhookWhatsappRoute,
 }
