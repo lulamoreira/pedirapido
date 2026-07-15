@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { getPlano, updateDistribuidoraConfig } from "@/lib/aquaflow.functions";
+import { getPlano, updateDistribuidoraConfig, listHorarios, saveHorarios } from "@/lib/aquaflow.functions";
 import { ArrowLeft, Store, Clock, Truck, Timer, MapPin, Upload, Loader2, X, ImageIcon, FileText, Link2 } from "lucide-react";
 import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
 import { maskCnpj, maskCep, validateCnpj, resizeImageToSquareDataUrl } from "@/lib/br-utils";
+
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
   head: () => ({ meta: [{ title: "Configurações — Pedirápido" }] }),
