@@ -37,15 +37,21 @@ function Dashboard() {
   return (
     <div className="space-y-4 p-4">
       <div className="flex items-center justify-between pt-2">
-        <div className="min-w-0">
-          <p className="text-xs font-medium text-muted-foreground">Olá,</p>
-          <h1 className="truncate text-xl font-black tracking-tight">{data.distribuidora.nome_fantasia ?? data.distribuidora.nome}</h1>
-          {user?.email && (
-            <p className="mt-0.5 truncate text-[10px] text-muted-foreground/70">
-              🔎 sessão: <span className="font-mono">{user.email}</span>{clientMaster && " · master"}
-            </p>
-          )}
+        <div className="flex items-center gap-3 min-w-0">
+          {data.distribuidora.logo_url ? (
+            <img src={data.distribuidora.logo_url} alt="" className="h-11 w-11 rounded-2xl object-contain bg-white shadow-soft shrink-0" />
+          ) : null}
+          <div className="min-w-0">
+            <p className="text-xs font-medium text-muted-foreground">Olá,</p>
+            <h1 className="truncate text-xl font-black tracking-tight">{data.distribuidora.nome_fantasia ?? data.distribuidora.nome}</h1>
+            {user?.email && (
+              <p className="mt-0.5 truncate text-[10px] text-muted-foreground/70">
+                🔎 sessão: <span className="font-mono">{user.email}</span>{clientMaster && " · master"}
+              </p>
+            )}
+          </div>
         </div>
+
         <div className="flex gap-2">
           {showMasterBtn && (
             <Link to="/admin" className="grid h-11 w-11 place-items-center rounded-2xl gradient-primary text-primary-foreground shadow-soft" aria-label="Admin Master">
