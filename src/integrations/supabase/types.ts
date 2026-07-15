@@ -83,6 +83,7 @@ export type Database = {
           trial_expires_at: string
           uf: string | null
           updated_at: string
+          verificacao_whatsapp: boolean
         }
         Insert: {
           bairro?: string | null
@@ -111,6 +112,7 @@ export type Database = {
           trial_expires_at?: string
           uf?: string | null
           updated_at?: string
+          verificacao_whatsapp?: boolean
         }
         Update: {
           bairro?: string | null
@@ -139,6 +141,7 @@ export type Database = {
           trial_expires_at?: string
           uf?: string | null
           updated_at?: string
+          verificacao_whatsapp?: boolean
         }
         Relationships: []
       }
@@ -277,6 +280,50 @@ export type Database = {
             columns: ["pedido_id"]
             isOneToOne: false
             referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      otp_verificacoes: {
+        Row: {
+          codigo_hash: string
+          created_at: string
+          distribuidora_id: string
+          expira_em: string
+          id: string
+          telefone: string
+          tentativas: number
+          token: string | null
+          verificado_at: string | null
+        }
+        Insert: {
+          codigo_hash: string
+          created_at?: string
+          distribuidora_id: string
+          expira_em: string
+          id?: string
+          telefone: string
+          tentativas?: number
+          token?: string | null
+          verificado_at?: string | null
+        }
+        Update: {
+          codigo_hash?: string
+          created_at?: string
+          distribuidora_id?: string
+          expira_em?: string
+          id?: string
+          telefone?: string
+          tentativas?: number
+          token?: string | null
+          verificado_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "otp_verificacoes_distribuidora_id_fkey"
+            columns: ["distribuidora_id"]
+            isOneToOne: false
+            referencedRelation: "distribuidoras"
             referencedColumns: ["id"]
           },
         ]
