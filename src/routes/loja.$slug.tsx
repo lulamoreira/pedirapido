@@ -651,7 +651,7 @@ function CheckoutModal(p: CheckoutProps) {
           <div className="p-4 border-t bg-white">
             {step === 1 && (
               <Button onClick={() => setStep(2)} disabled={p.cart.length === 0} className="w-full rounded-2xl h-12 gradient-primary font-black">
-                Continuar · {fmt(total)}
+                {p.isClosed ? `Confirmar pré-pedido · ${fmt(total)}` : `Continuar · ${fmt(total)}`}
               </Button>
             )}
             {step === 2 && (
@@ -661,8 +661,9 @@ function CheckoutModal(p: CheckoutProps) {
             )}
             {step === 3 && (
               <Button onClick={finalizar} disabled={loading} className="w-full rounded-2xl h-12 gradient-primary font-black">
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : `Finalizar pedido · ${fmt(total)}`}
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : (p.isClosed ? `Enviar pré-pedido · ${fmt(total)}` : `Finalizar pedido · ${fmt(total)}`)}
               </Button>
+
             )}
           </div>
         )}
