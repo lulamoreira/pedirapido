@@ -121,6 +121,11 @@ function LojaPage() {
   }
 
   const d = data.distribuidora as any;
+  const nomeLoja = displayNomeLoja(d);
+
+  useEffect(() => {
+    if (nomeLoja) document.title = `${nomeLoja} — Cardápio | Pedirápido`;
+  }, [nomeLoja]);
 
   return (
     <div className="min-h-screen bg-[#F7F9FC] pb-32">
