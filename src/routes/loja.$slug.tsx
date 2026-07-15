@@ -316,10 +316,11 @@ function LojaPage() {
           <ul className="space-y-3">
             {produtosFiltrados.map((p: any) => {
               const noCart = cart.find(i => i.produto_id === p.id);
+              const CatIcon = CAT_META[p.categoria]?.icon ?? Droplet;
               return (
                 <li key={p.id} className="rounded-2xl bg-white p-4 shadow-soft flex items-center gap-3">
                   <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-primary/10">
-                    <Droplet className="h-7 w-7 text-primary" />
+                    <CatIcon className="h-7 w-7 text-primary" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-black">{p.nome}</p>
