@@ -196,7 +196,35 @@ function EstoquePage() {
                 </label>
               </div>
 
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Marca" value={editing.marca} onChange={(v) => setEditing({ ...editing, marca: v })} />
+                <label className="block">
+                  <span className="mb-1 block text-xs font-semibold text-muted-foreground">Tipo de embalagem</span>
+                  <input
+                    list="tipos-embalagem"
+                    value={editing.tipo_embalagem}
+                    onChange={(e) => setEditing({ ...editing, tipo_embalagem: e.target.value })}
+                    placeholder="Galão, Garrafa…"
+                    className="w-full rounded-xl border border-input bg-card px-4 py-3 text-sm outline-none focus:border-primary"
+                  />
+                  <datalist id="tipos-embalagem">
+                    {TIPOS_EMBALAGEM.map((t) => <option key={t} value={t} />)}
+                  </datalist>
+                </label>
+              </div>
+
+              <label className="block">
+                <span className="mb-1 block text-xs font-semibold text-muted-foreground">Descrição (opcional)</span>
+                <textarea
+                  value={editing.descricao}
+                  onChange={(e) => setEditing({ ...editing, descricao: e.target.value })}
+                  rows={2}
+                  className="w-full rounded-xl border border-input bg-card px-4 py-3 text-sm outline-none focus:border-primary resize-none"
+                />
+              </label>
+
               <Field label="Alerta em (un)" value={editing.estoque_minimo} type="number" onChange={(v) => setEditing({ ...editing, estoque_minimo: v })} />
+
             </div>
             <button
               disabled={!editing.nome || !editing.preco || save.isPending}
