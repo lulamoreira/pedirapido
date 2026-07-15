@@ -23,6 +23,8 @@ function formatPhone(t: string | null | undefined) {
 
 function ClientesPage() {
   const [search, setSearch] = useState("");
+  const [openNovo, setOpenNovo] = useState(false);
+
   const { data = [], isLoading } = useQuery({
     queryKey: ["clientes", search],
     queryFn: () => listClientes({ data: { search } }),
