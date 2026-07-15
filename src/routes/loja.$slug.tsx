@@ -337,12 +337,16 @@ function LojaPage() {
           distribuidoraId={data!.distribuidora.id}
           taxaEntrega={Number(d.taxa_entrega_padrao ?? 0)}
           cart={cart}
+          isClosed={!d.aberto}
+          proximoDia={d.proximoDia ?? null}
+          proximoHorario={d.proximoHorario ?? null}
           onClose={() => setCheckoutOpen(false)}
           onUpdateQty={updateQty}
           onRemove={removeItem}
           onSuccess={() => setCart([])}
         />
       )}
+
     </div>
   );
 }
