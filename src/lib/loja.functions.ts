@@ -145,6 +145,9 @@ export const checkoutLojaPublica = createServerFn({ method: "POST" })
     troco_para?: number | null;
     observacoes?: string;
     is_pre_order?: boolean;
+    verification_token?: string;
+
+
 
   }) => z.object({
     distribuidora_id: z.string().uuid(),
