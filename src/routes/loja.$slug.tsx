@@ -464,7 +464,7 @@ function CheckoutModal(p: CheckoutProps) {
     if (!rua || !numero || !bairro || !cidade) return toast.error("Preencha o endereço completo");
     const endereco = [
       `${rua}, ${numero}`, bairro, cidade,
-      complemento ? `Ref: ${complemento}` : "",
+      referencia ? `Ref: ${referencia}` : "",
     ].filter(Boolean).join(" — ");
 
     setLoading(true);
@@ -472,7 +472,12 @@ function CheckoutModal(p: CheckoutProps) {
       const r = await checkoutFn({
         data: {
           distribuidora_id: p.distribuidoraId,
-          cliente: { nome, telefone, endereco, cep: cep || undefined },
+          cliente: {
+            nome, telefone, endereco,
+            cep: cep || undefined,
+            complemento: complemento || undefined,
+          },
+
           itens: p.cart.map(i => ({ produto_id: i.produto_id, quantidade: i.quantidade })),
           forma_pagamento: forma,
           troco_para: forma === "dinheiro" && troco ? Number(troco.replace(",", ".")) : null,
