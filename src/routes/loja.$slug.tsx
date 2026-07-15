@@ -399,6 +399,8 @@ function CheckoutModal(p: CheckoutProps) {
   const [bairro, setBairro] = useState("");
   const [cidade, setCidade] = useState("");
   const [complemento, setComplemento] = useState("");
+  const [referencia, setReferencia] = useState("");
+
   const [forma, setForma] = useState<"pix" | "cartao" | "dinheiro">("pix");
   const [troco, setTroco] = useState<string>("");
   const [loading, setLoading] = useState(false);
