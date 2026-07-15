@@ -6,10 +6,14 @@ import { formatBRL, daysUntil } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
 import { NovoPedidoModal } from "@/components/NovoPedidoModal";
 import { ClienteProfileSheet } from "@/components/ClienteProfileSheet";
+import { PreOrderSummaryModal } from "@/components/PreOrderSummaryModal";
+import { usePreOrderRealtime } from "@/hooks/usePreOrderRealtime";
+import { unlockAudio } from "@/lib/notify-sound";
 import { useSessionUser } from "@/hooks/useSessionUser";
 import { isMasterEmail } from "@/lib/isMaster";
 import { Bell, TrendingUp, Package, AlertTriangle, Sparkles, Plus, Shield, Globe, Share2, Moon } from "lucide-react";
 import { toast } from "sonner";
+
 
 
 const dashOpts = queryOptions({
