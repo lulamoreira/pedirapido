@@ -387,6 +387,7 @@ export const updateDistribuidoraConfig = createServerFn({ method: "POST" })
     complemento?: string | null; bairro?: string | null; cidade?: string | null; uf?: string | null;
     logo_url?: string | null;
     slug?: string | null;
+    verificacao_whatsapp?: boolean;
   }) =>
     z.object({
       nome_fantasia: z.string().min(2).max(120),
