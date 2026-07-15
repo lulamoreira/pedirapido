@@ -122,7 +122,13 @@ function ClientesPage() {
 
       <BottomNav />
       <NovoClienteModal open={openNovo} onOpenChange={setOpenNovo} />
+      <ClienteProfileSheet
+        clienteId={selectedCliente}
+        open={!!selectedCliente}
+        onOpenChange={(o) => !o && setSelectedCliente(null)}
+      />
 
     </div>
   );
 }
+
