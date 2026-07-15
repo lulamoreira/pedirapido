@@ -60,10 +60,12 @@ type CartItem = { produto_id: string; nome: string; preco: number; quantidade: n
 
 function LojaPage() {
   const { slug } = Route.useParams();
+  const slugSafe = typeof slug === "string" ? slug.trim() : "";
   const loadLoja = useServerFn(getLojaPublica);
   const { data, isLoading, error } = useQuery({
-    queryKey: ["loja", slug],
-    queryFn: () => loadLoja({ data: { id: slug } }),
+    queryKey: ["loja", slugSafe],
+    queryFn: () => loadLoja({ data: { id: slugSafe } }),
+    enabled: slugSafe.length > 0,
     retry: false,
   });
 
@@ -72,19 +74,26 @@ function LojaPage() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   const categorias = useMemo(() => {
-    if (!data) return [];
+    if (!data?.produtos) return [];
     const set = new Set<string>();
     data.produtos.forEach((p: any) => set.add(p.categoria));
     return Array.from(set);
   }, [data]);
 
   const produtosFiltrados = useMemo(() => {
-    if (!data) return [];
+    if (!data?.produtos) return [];
     return data.produtos.filter((p: any) => p.categoria === catAtiva);
   }, [data, catAtiva]);
 
   const subtotal = cart.reduce((s, i) => s + i.preco * i.quantidade, 0);
   const qtyTotal = cart.reduce((s, i) => s + i.quantidade, 0);
+
+  const d: any = data?.distribuidora ?? null;
+  const nomeLoja = d ? displayNomeLoja(d) : "";
+
+  useEffect(() => {
+    if (nomeLoja) document.title = `${nomeLoja} — Cardápio | Pedirápido`;
+  }, [nomeLoja]);
 
   function addToCart(p: any) {
     setCart(prev => {
@@ -104,14 +113,33 @@ function LojaPage() {
     setCart(prev => prev.filter(i => i.produto_id !== produto_id));
   }
 
-  if (isLoading) {
+  // Loading: slug ainda não pronto OU query em andamento
+  if (!slugSafe || isLoading) {
     return (
-      <div className="min-h-screen grid place-items-center bg-[#F7F9FC]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-[#F7F9FC] pb-24">
+        <div className="mx-auto max-w-lg px-4 pt-8 pb-6 flex flex-col items-center">
+          <div className="h-28 w-28 rounded-3xl bg-slate-200 animate-pulse" />
+          <div className="mt-4 h-5 w-48 rounded-full bg-slate-200 animate-pulse" />
+          <div className="mt-2 h-3 w-32 rounded-full bg-slate-200 animate-pulse" />
+        </div>
+        <div className="mx-auto max-w-lg px-4 space-y-3">
+          {[0, 1, 2, 3].map(i => (
+            <div key={i} className="rounded-2xl bg-white p-4 shadow-soft flex items-center gap-3">
+              <div className="h-16 w-16 rounded-2xl bg-slate-200 animate-pulse" />
+              <div className="flex-1 space-y-2">
+                <div className="h-3 w-3/4 rounded-full bg-slate-200 animate-pulse" />
+                <div className="h-3 w-1/2 rounded-full bg-slate-200 animate-pulse" />
+              </div>
+              <div className="h-11 w-11 rounded-2xl bg-slate-200 animate-pulse" />
+            </div>
+          ))}
+        </div>
+        <div className="sr-only" role="status">Carregando cardápio…</div>
       </div>
     );
   }
-  if (error || !data) {
+
+  if (error || !data || !d) {
     return (
       <div className="min-h-screen grid place-items-center bg-[#F7F9FC] p-6 text-center">
         <div>
@@ -123,12 +151,6 @@ function LojaPage() {
     );
   }
 
-  const d = data.distribuidora as any;
-  const nomeLoja = displayNomeLoja(d);
-
-  useEffect(() => {
-    if (nomeLoja) document.title = `${nomeLoja} — Cardápio | Pedirápido`;
-  }, [nomeLoja]);
 
   return (
     <div className="min-h-screen bg-[#F7F9FC] pb-32">
