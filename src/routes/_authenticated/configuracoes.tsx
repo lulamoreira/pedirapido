@@ -66,6 +66,7 @@ function ConfigPage() {
         bairro: String(d.bairro ?? ""),
         cidade: String(d.cidade ?? ""),
         uf: String(d.uf ?? ""),
+        verificacao_whatsapp: !!d.verificacao_whatsapp,
       });
       setLogoDataUrl(d.logo_url ? String(d.logo_url) : null);
     }
