@@ -20,6 +20,7 @@ import { Route as AuthenticatedEntregadoresRouteImport } from './routes/_authent
 import { Route as AuthenticatedEntregadorRouteImport } from './routes/_authenticated/entregador'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
+import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedPedidosIdRouteImport } from './routes/_authenticated/pedidos.$id'
 import { Route as ApiPublicWebhookWhatsappRouteImport } from './routes/api/public/webhook/whatsapp'
@@ -80,6 +81,11 @@ const AuthenticatedConfiguracoesRoute =
     path: '/configuracoes',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedClientesRoute = AuthenticatedClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -102,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/plano': typeof PlanoRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/clientes': typeof AuthenticatedClientesRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/entregador': typeof AuthenticatedEntregadorRoute
@@ -117,6 +124,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/plano': typeof PlanoRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/clientes': typeof AuthenticatedClientesRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/entregador': typeof AuthenticatedEntregadorRoute
@@ -134,6 +142,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/plano': typeof PlanoRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/clientes': typeof AuthenticatedClientesRoute
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/entregador': typeof AuthenticatedEntregadorRoute
@@ -151,6 +160,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/plano'
     | '/admin'
+    | '/clientes'
     | '/configuracoes'
     | '/dashboard'
     | '/entregador'
@@ -166,6 +176,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/plano'
     | '/admin'
+    | '/clientes'
     | '/configuracoes'
     | '/dashboard'
     | '/entregador'
@@ -182,6 +193,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/plano'
     | '/_authenticated/admin'
+    | '/_authenticated/clientes'
     | '/_authenticated/configuracoes'
     | '/_authenticated/dashboard'
     | '/_authenticated/entregador'
@@ -280,6 +292,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedConfiguracoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/clientes': {
+      id: '/_authenticated/clientes'
+      path: '/clientes'
+      fullPath: '/clientes'
+      preLoaderRoute: typeof AuthenticatedClientesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -317,6 +336,7 @@ const AuthenticatedPedidosRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
   AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedEntregadorRoute: typeof AuthenticatedEntregadorRoute
@@ -328,6 +348,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedClientesRoute: AuthenticatedClientesRoute,
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedEntregadorRoute: AuthenticatedEntregadorRoute,

@@ -249,6 +249,32 @@ export const searchClienteByPhone = createServerFn({ method: "POST" })
     return cli ?? null;
   });
 
+// -------- Listar clientes (CRM) --------
+export const listClientes = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { search?: string } | undefined) => ({ search: (d?.search ?? "").trim() }))
+  .handler(async ({ data, context }) => {
+    const distId = await getDistId(context.supabase, context.userId);
+    if (!distId) return [];
+    let q = context.supabase
+      .from("clientes")
+      .select("id,nome,telefone,endereco,created_at,pedidos:pedidos(id)")
+      .eq("distribuidora_id", distId)
+      .order("created_at", { ascending: false })
+      .limit(500);
+    if (data.search) {
+      const digits = data.search.replace(/\D/g, "");
+      if (digits.length >= 3) q = q.or(`nome.ilike.%${data.search}%,telefone.ilike.%${digits}%`);
+      else q = q.ilike("nome", `%${data.search}%`);
+    }
+    const { data: rows, error } = await q;
+    if (error) throw error;
+    return (rows ?? []).map((c: any) => ({
+      id: c.id, nome: c.nome, telefone: c.telefone, endereco: c.endereco,
+      created_at: c.created_at, total_pedidos: (c.pedidos ?? []).length,
+    }));
+  });
+
 // -------- Criar pedido manual (PDV) --------
 export const createManualPedido = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

@@ -20,13 +20,15 @@ export function NovoPedidoModal({ open, onClose }: { open: boolean; onClose: () 
   const [forma, setForma] = useState<"pix" | "cartao" | "dinheiro">("pix");
   const [obs, setObs] = useState("");
 
-  const reset = () => { setTelefone(""); setNome(""); setEndereco(""); setItens([]); setForma("pix"); setObs(""); };
+  const reset = () => { setTelefone(""); setNome(""); setEndereco(""); setItens([]); setForma("pix"); setObs(""); setClienteState("idle"); };
+
+  const [clienteState, setClienteState] = useState<"idle" | "found" | "new">("idle");
 
   const buscar = useMutation({
     mutationFn: () => searchClienteByPhone({ data: { telefone } }),
     onSuccess: (c: any) => {
-      if (c) { setNome(c.nome); setEndereco(c.endereco ?? ""); toast.success("Cliente encontrado"); }
-      else toast.info("Novo cliente — preencha os dados");
+      if (c) { setNome(c.nome); setEndereco(c.endereco ?? ""); setClienteState("found"); toast.success("Cliente encontrado"); }
+      else { setClienteState("new"); }
     },
   });
 
@@ -82,13 +84,21 @@ export function NovoPedidoModal({ open, onClose }: { open: boolean; onClose: () 
         <section className="rounded-2xl bg-accent p-3">
           <div className="text-xs font-bold uppercase tracking-wider text-primary">Cliente</div>
           <div className="mt-2 flex gap-2">
-            <input value={telefone} onChange={e => setTelefone(e.target.value)} placeholder="Telefone" className="input flex-1" />
+            <input value={telefone} onChange={e => { setTelefone(e.target.value); setClienteState("idle"); }} placeholder="Telefone" className="input flex-1" />
             <button type="button" onClick={() => telefone && buscar.mutate()} className="grid h-11 w-11 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-soft">
               {buscar.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
             </button>
           </div>
           <input value={nome} onChange={e => setNome(e.target.value)} placeholder="Nome do cliente*" className="input mt-2" />
           <input value={endereco} onChange={e => setEndereco(e.target.value)} placeholder="Endereço de entrega" className="input mt-2" />
+          {clienteState === "new" && (
+            <p className="mt-2 rounded-xl bg-primary/10 px-3 py-2 text-[11px] font-medium text-primary">
+              ✨ Cliente novo. Será cadastrado automaticamente ao finalizar o pedido.
+            </p>
+          )}
+          {clienteState === "found" && (
+            <p className="mt-2 text-[11px] font-medium text-emerald-600">✓ Cliente já cadastrado — dados preenchidos.</p>
+          )}
         </section>
 
         {/* Produtos */}
