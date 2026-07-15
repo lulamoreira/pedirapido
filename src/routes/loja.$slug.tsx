@@ -230,8 +230,29 @@ function LojaPage() {
         </div>
       </header>
 
+      {/* Banner de loja fechada */}
+      {!d.aberto && (
+        <div className="mx-auto max-w-lg px-4 pt-4">
+          <div className="rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-yellow-100 p-4 flex items-start gap-3">
+            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-amber-500 text-white">
+              <Moon className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1 text-sm">
+              <div className="font-black text-amber-900">🌙 Fechado no momento</div>
+              <p className="text-xs text-amber-800 mt-0.5">
+                {d.proximoDia != null && d.proximoHorario
+                  ? <>Abrimos <b>{["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"][d.proximoDia]}</b> às <b>{d.proximoHorario}</b>.</>
+                  : "Consulte os horários de atendimento."}
+                {" "}Você pode adicionar itens e enviar como <b>pré-pedido</b> — despacharemos assim que abrirmos.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Produtos */}
       <main className="mx-auto max-w-lg px-4 py-4">
+
         {produtosFiltrados.length === 0 ? (
           <div className="rounded-3xl bg-white p-8 text-center shadow-soft">
             <PkgIcon className="mx-auto h-10 w-10 text-muted-foreground/60" />
