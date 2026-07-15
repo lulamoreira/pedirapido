@@ -25,9 +25,13 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 function Dashboard() {
   const { data } = useSuspenseQuery(dashOpts);
   const [showNovo, setShowNovo] = useState(false);
+  const { user } = useSessionUser();
+  const clientMaster = isMasterEmail(user?.email);
+  useEffect(() => { if (user?.email) console.log("[Pedirápido] sessão:", user.email, "master?", clientMaster); }, [user?.email, clientMaster]);
   const trialDays = daysUntil(data.distribuidora.trial_expires_at);
   const isFree = data.distribuidora.plano === "free";
   const usoPct = Math.min(100, Math.round((data.totalMes / data.limiteFree) * 100));
+  const showMasterBtn = data.isAdminMaster || clientMaster;
 
   return (
     <div className="space-y-4 p-4">
@@ -37,7 +41,7 @@ function Dashboard() {
           <h1 className="truncate text-xl font-black tracking-tight">{data.distribuidora.nome}</h1>
         </div>
         <div className="flex gap-2">
-          {data.isAdminMaster && (
+          {showMasterBtn && (
             <Link to="/admin" className="grid h-11 w-11 place-items-center rounded-2xl gradient-primary text-primary-foreground shadow-soft" aria-label="Admin Master">
               <Shield className="h-5 w-5" />
             </Link>
