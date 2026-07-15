@@ -7,7 +7,8 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { NovoPedidoModal } from "@/components/NovoPedidoModal";
 import { useSessionUser } from "@/hooks/useSessionUser";
 import { isMasterEmail } from "@/lib/isMaster";
-import { Bell, TrendingUp, Package, AlertTriangle, Sparkles, Plus, Shield } from "lucide-react";
+import { Bell, TrendingUp, Package, AlertTriangle, Sparkles, Plus, Shield, Globe, Share2 } from "lucide-react";
+import { toast } from "sonner";
 
 const dashOpts = queryOptions({
   queryKey: ["dashboard"],
