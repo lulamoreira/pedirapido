@@ -147,6 +147,30 @@ function AuthPage() {
           </button>
         </form>
 
+        {mode === "login" && (
+          <button
+            type="button"
+            onClick={async () => {
+              if (!email) {
+                toast.error("Digite seu e-mail primeiro");
+                return;
+              }
+              try {
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                  redirectTo: window.location.origin + "/auth",
+                });
+                if (error) throw error;
+                toast.success("Enviamos um link de redefinição para seu e-mail.");
+              } catch (err) {
+                toast.error(err instanceof Error ? err.message : "Erro ao enviar link");
+              }
+            }}
+            className="mt-3 w-full text-center text-xs font-semibold text-primary hover:underline"
+          >
+            Esqueci minha senha
+          </button>
+        )}
+
         <button
           onClick={() => setMode(mode === "login" ? "signup" : "login")}
           className="mt-4 w-full text-center text-sm text-muted-foreground hover:text-foreground"
