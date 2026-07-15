@@ -39,7 +39,7 @@ function Dashboard() {
       <div className="flex items-center justify-between pt-2">
         <div className="min-w-0">
           <p className="text-xs font-medium text-muted-foreground">Olá,</p>
-          <h1 className="truncate text-xl font-black tracking-tight">{data.distribuidora.nome}</h1>
+          <h1 className="truncate text-xl font-black tracking-tight">{data.distribuidora.nome_fantasia ?? data.distribuidora.nome}</h1>
           {user?.email && (
             <p className="mt-0.5 truncate text-[10px] text-muted-foreground/70">
               🔎 sessão: <span className="font-mono">{user.email}</span>{clientMaster && " · master"}
