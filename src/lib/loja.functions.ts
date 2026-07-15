@@ -3,15 +3,18 @@ import { z } from "zod";
 import { generatePixCode } from "@/lib/pix";
 
 // -------- Carregar loja pública (distribuidora + catálogo) --------
+// Aceita slug (novo) ou UUID (legado) no mesmo parâmetro `id`.
 export const getLojaPublica = createServerFn({ method: "GET" })
-  .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: { id: string }) => z.object({ id: z.string().min(1).max(120) }).parse(d))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.id);
+    const cols = "id,slug,nome,nome_fantasia,razao_social,cnpj,telefone,plano,taxa_entrega_padrao,horario_abertura,horario_fechamento,tempo_estimado_min,status_assinatura,logo_url,logradouro,numero,complemento,bairro,cidade,uf,cep";
     const { data: dist, error } = await supabaseAdmin
       .from("distribuidoras")
-      .select("id,nome,nome_fantasia,razao_social,cnpj,telefone,plano,taxa_entrega_padrao,horario_abertura,horario_fechamento,tempo_estimado_min,status_assinatura,logo_url,logradouro,numero,complemento,bairro,cidade,uf,cep")
-      .eq("id", data.id)
+      .select(cols)
+      .eq(isUuid ? "id" : "slug", data.id)
       .maybeSingle();
     if (error) throw error;
     if (!dist) throw new Error("Loja não encontrada");

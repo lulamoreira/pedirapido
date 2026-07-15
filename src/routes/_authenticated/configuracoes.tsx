@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { getPlano, updateDistribuidoraConfig } from "@/lib/aquaflow.functions";
-import { ArrowLeft, Store, Clock, Truck, Timer, MapPin, Upload, Loader2, X, ImageIcon, FileText } from "lucide-react";
+import { ArrowLeft, Store, Clock, Truck, Timer, MapPin, Upload, Loader2, X, ImageIcon, FileText, Link2 } from "lucide-react";
 import { toast } from "sonner";
 import { maskCnpj, maskCep, validateCnpj, resizeImageToSquareDataUrl } from "@/lib/br-utils";
 
@@ -14,6 +14,7 @@ export const Route = createFileRoute("/_authenticated/configuracoes")({
 type Form = {
   nome_fantasia: string; razao_social: string;
   telefone: string; cnpj: string;
+  slug: string;
   horario_abertura: string; horario_fechamento: string;
   taxa_entrega_padrao: number; tempo_estimado_min: number;
   cep: string; logradouro: string; numero: string; complemento: string;
@@ -23,6 +24,7 @@ type Form = {
 const EMPTY: Form = {
   nome_fantasia: "", razao_social: "",
   telefone: "", cnpj: "",
+  slug: "",
   horario_abertura: "08:00", horario_fechamento: "18:00",
   taxa_entrega_padrao: 0, tempo_estimado_min: 45,
   cep: "", logradouro: "", numero: "", complemento: "",
@@ -48,6 +50,7 @@ function ConfigPage() {
         razao_social: String(d.razao_social ?? ""),
         telefone: String(d.telefone ?? ""),
         cnpj: d.cnpj ? maskCnpj(String(d.cnpj)) : "",
+        slug: String(d.slug ?? ""),
         horario_abertura: String(d.horario_abertura ?? "08:00"),
         horario_fechamento: String(d.horario_fechamento ?? "18:00"),
         taxa_entrega_padrao: Number(d.taxa_entrega_padrao ?? 0),
@@ -130,6 +133,7 @@ function ConfigPage() {
           cidade: form.cidade || null,
           uf: form.uf ? form.uf.toUpperCase().slice(0, 2) : null,
           logo_url: logoDataUrl,
+          slug: form.slug ? form.slug.trim() : null,
         },
       });
     },
@@ -237,6 +241,28 @@ function ConfigPage() {
             {cnpjError && <p className="mt-1 text-xs font-bold text-red-500">{cnpjError}</p>}
           </Field>
         </Card>
+
+        <Card icon={Link2} title="Link do seu Cardápio">
+          <Field label="Endereço personalizado (slug)">
+            <div className="flex items-center gap-2">
+              <span className="shrink-0 rounded-l-xl bg-secondary px-3 py-2 text-xs font-mono text-muted-foreground">
+                {typeof window !== "undefined" ? window.location.host : "pedirapido.com.br"}/loja/
+              </span>
+              <input
+                className="input flex-1"
+                value={form.slug}
+                onChange={(e) => setForm({ ...form, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") })}
+                placeholder="minha-loja"
+                maxLength={60}
+              />
+            </div>
+            <span className="mt-1 block text-[10px] text-muted-foreground">
+              Use apenas letras minúsculas, números e hífen. Ex.: <b>disqueagua</b>. Deixe em branco para gerar do Nome Fantasia.
+            </span>
+          </Field>
+        </Card>
+
+
 
         <Card icon={MapPin} title="Endereço físico">
           <Field label="CEP">

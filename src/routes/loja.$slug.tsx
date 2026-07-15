@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/loja/$id")({
+export const Route = createFileRoute("/loja/$slug")({
   head: () => ({
     meta: [
       { title: "Cardápio — Pedirápido" },
@@ -56,11 +56,11 @@ function maskCep(v: string) {
 type CartItem = { produto_id: string; nome: string; preco: number; quantidade: number };
 
 function LojaPage() {
-  const { id } = Route.useParams();
+  const { slug } = Route.useParams();
   const loadLoja = useServerFn(getLojaPublica);
   const { data, isLoading, error } = useQuery({
-    queryKey: ["loja", id],
-    queryFn: () => loadLoja({ data: { id } }),
+    queryKey: ["loja", slug],
+    queryFn: () => loadLoja({ data: { id: slug } }),
     retry: false,
   });
 
@@ -283,7 +283,7 @@ function LojaPage() {
 
       {checkoutOpen && (
         <CheckoutModal
-          distribuidoraId={id}
+          distribuidoraId={data!.distribuidora.id}
           taxaEntrega={Number(d.taxa_entrega_padrao ?? 0)}
           cart={cart}
           onClose={() => setCheckoutOpen(false)}

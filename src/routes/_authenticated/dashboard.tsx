@@ -60,7 +60,8 @@ function Dashboard() {
 
       {/* Cardápio Digital Público */}
       {(() => {
-        const lojaPath = `/loja/${data.distribuidora.id}`;
+        const slug = (data.distribuidora as any).slug ?? data.distribuidora.id;
+        const lojaPath = `/loja/${slug}`;
         const lojaUrl = typeof window !== "undefined" ? `${window.location.origin}${lojaPath}` : `https://pedirapido.lovable.app${lojaPath}`;
         const displayUrl = lojaUrl.replace(/^https?:\/\//, "");
         const copiar = async () => {
