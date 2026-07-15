@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { listProdutos, upsertProduto, deleteProduto, getPlano } from "@/lib/aquaflow.functions";
-import { formatBRL } from "@/lib/format";
+import { formatBRL, formatVolume } from "@/lib/format";
 import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, Lock, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
@@ -11,8 +11,9 @@ export const Route = createFileRoute("/_authenticated/estoque")({
 });
 
 type Categoria = "agua" | "bebidas" | "descartaveis" | "petiscos" | "outros";
-type FormState = { id?: string; nome: string; preco: string; estoque: string; estoque_minimo: string; categoria: Categoria };
-const empty: FormState = { nome: "", preco: "", estoque: "0", estoque_minimo: "5", categoria: "agua" };
+type Unidade = "L" | "ml";
+type FormState = { id?: string; nome: string; preco: string; estoque: string; estoque_minimo: string; categoria: Categoria; volume_valor: string; volume_unidade: Unidade };
+const empty: FormState = { nome: "", preco: "", estoque: "0", estoque_minimo: "5", categoria: "agua", volume_valor: "", volume_unidade: "L" };
 
 const CATEGORIAS: { value: Categoria; label: string; emoji: string; onlyBusiness: boolean }[] = [
   { value: "agua", label: "Água", emoji: "💧", onlyBusiness: false },
