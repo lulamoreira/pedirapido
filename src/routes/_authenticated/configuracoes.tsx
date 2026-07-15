@@ -203,8 +203,24 @@ function ConfigPage() {
         </Card>
 
         <Card icon={Store} title="Identidade">
-          <Field label="Nome fantasia / Razão social *">
-            <input required className="input" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
+          <Field label="Nome Fantasia *">
+            <input
+              required
+              className="input"
+              value={form.nome_fantasia}
+              onChange={(e) => setForm({ ...form, nome_fantasia: e.target.value })}
+              placeholder="Como seus clientes chamam sua loja"
+            />
+            <span className="mt-1 block text-[10px] text-muted-foreground">Aparece no app, no cardápio e nas mensagens.</span>
+          </Field>
+          <Field label="Razão Social">
+            <input
+              className="input"
+              value={form.razao_social}
+              onChange={(e) => setForm({ ...form, razao_social: e.target.value })}
+              placeholder="Nome jurídico registrado (fiscal)"
+            />
+            <span className="mt-1 block text-[10px] text-muted-foreground">Exibida apenas em áreas fiscais e no rodapé do cardápio, junto ao CNPJ.</span>
           </Field>
           <Field label="Telefone / WhatsApp">
             <input className="input" value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} placeholder="(11) 99999-9999" />
