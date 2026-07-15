@@ -24,6 +24,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as PedidoIdStatusRouteImport } from './routes/pedido.$id.status'
 import { Route as AuthenticatedPedidosIdRouteImport } from './routes/_authenticated/pedidos.$id'
 import { Route as ApiPublicWebhookWhatsappRouteImport } from './routes/api/public/webhook/whatsapp'
 
@@ -103,6 +104,11 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const PedidoIdStatusRoute = PedidoIdStatusRouteImport.update({
+  id: '/status',
+  path: '/status',
+  getParentRoute: () => PedidoIdRoute,
+} as any)
 const AuthenticatedPedidosIdRoute = AuthenticatedPedidosIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -129,8 +135,9 @@ export interface FileRoutesByFullPath {
   '/pedidos': typeof AuthenticatedPedidosRouteWithChildren
   '/perfil': typeof AuthenticatedPerfilRoute
   '/loja/$id': typeof LojaIdRoute
-  '/pedido/$id': typeof PedidoIdRoute
+  '/pedido/$id': typeof PedidoIdRouteWithChildren
   '/pedidos/$id': typeof AuthenticatedPedidosIdRoute
+  '/pedido/$id/status': typeof PedidoIdStatusRoute
   '/api/public/webhook/whatsapp': typeof ApiPublicWebhookWhatsappRoute
 }
 export interface FileRoutesByTo {
@@ -147,8 +154,9 @@ export interface FileRoutesByTo {
   '/pedidos': typeof AuthenticatedPedidosRouteWithChildren
   '/perfil': typeof AuthenticatedPerfilRoute
   '/loja/$id': typeof LojaIdRoute
-  '/pedido/$id': typeof PedidoIdRoute
+  '/pedido/$id': typeof PedidoIdRouteWithChildren
   '/pedidos/$id': typeof AuthenticatedPedidosIdRoute
+  '/pedido/$id/status': typeof PedidoIdStatusRoute
   '/api/public/webhook/whatsapp': typeof ApiPublicWebhookWhatsappRoute
 }
 export interface FileRoutesById {
@@ -167,8 +175,9 @@ export interface FileRoutesById {
   '/_authenticated/pedidos': typeof AuthenticatedPedidosRouteWithChildren
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/loja/$id': typeof LojaIdRoute
-  '/pedido/$id': typeof PedidoIdRoute
+  '/pedido/$id': typeof PedidoIdRouteWithChildren
   '/_authenticated/pedidos/$id': typeof AuthenticatedPedidosIdRoute
+  '/pedido/$id/status': typeof PedidoIdStatusRoute
   '/api/public/webhook/whatsapp': typeof ApiPublicWebhookWhatsappRoute
 }
 export interface FileRouteTypes {
@@ -189,6 +198,7 @@ export interface FileRouteTypes {
     | '/loja/$id'
     | '/pedido/$id'
     | '/pedidos/$id'
+    | '/pedido/$id/status'
     | '/api/public/webhook/whatsapp'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -207,6 +217,7 @@ export interface FileRouteTypes {
     | '/loja/$id'
     | '/pedido/$id'
     | '/pedidos/$id'
+    | '/pedido/$id/status'
     | '/api/public/webhook/whatsapp'
   id:
     | '__root__'
@@ -226,6 +237,7 @@ export interface FileRouteTypes {
     | '/loja/$id'
     | '/pedido/$id'
     | '/_authenticated/pedidos/$id'
+    | '/pedido/$id/status'
     | '/api/public/webhook/whatsapp'
   fileRoutesById: FileRoutesById
 }
@@ -235,7 +247,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   PlanoRoute: typeof PlanoRoute
   LojaIdRoute: typeof LojaIdRoute
-  PedidoIdRoute: typeof PedidoIdRoute
+  PedidoIdRoute: typeof PedidoIdRouteWithChildren
   ApiPublicWebhookWhatsappRoute: typeof ApiPublicWebhookWhatsappRoute
 }
 
@@ -346,6 +358,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/pedido/$id/status': {
+      id: '/pedido/$id/status'
+      path: '/status'
+      fullPath: '/pedido/$id/status'
+      preLoaderRoute: typeof PedidoIdStatusRouteImport
+      parentRoute: typeof PedidoIdRoute
+    }
     '/_authenticated/pedidos/$id': {
       id: '/_authenticated/pedidos/$id'
       path: '/$id'
@@ -401,13 +420,25 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface PedidoIdRouteChildren {
+  PedidoIdStatusRoute: typeof PedidoIdStatusRoute
+}
+
+const PedidoIdRouteChildren: PedidoIdRouteChildren = {
+  PedidoIdStatusRoute: PedidoIdStatusRoute,
+}
+
+const PedidoIdRouteWithChildren = PedidoIdRoute._addFileChildren(
+  PedidoIdRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   PlanoRoute: PlanoRoute,
   LojaIdRoute: LojaIdRoute,
-  PedidoIdRoute: PedidoIdRoute,
+  PedidoIdRoute: PedidoIdRouteWithChildren,
   ApiPublicWebhookWhatsappRoute: ApiPublicWebhookWhatsappRoute,
 }
 export const routeTree = rootRouteImport
