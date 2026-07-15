@@ -407,6 +407,7 @@ export const updateDistribuidoraConfig = createServerFn({ method: "POST" })
       uf: z.string().max(2).nullish(),
       logo_url: z.string().max(500000).nullish(),
       slug: z.string().max(60).nullish(),
+      verificacao_whatsapp: z.boolean().optional(),
     }).parse(d))
   .handler(async ({ data, context }) => {
     const payload: Record<string, unknown> = {
