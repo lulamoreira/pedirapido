@@ -1,9 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getPedido, updatePedidoStatus, assignEntregador, listEntregadores } from "@/lib/aquaflow.functions";
+import { getPedido, updatePedidoStatus, assignEntregador, listEntregadores, listNotificacoes } from "@/lib/aquaflow.functions";
 import { formatBRL, formatPhone } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
-import { ArrowLeft, Copy, CheckCircle2, MapPin, Phone, Bike } from "lucide-react";
+import { ArrowLeft, Copy, CheckCircle2, MapPin, Phone, Bike, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/pedidos/$id")({
