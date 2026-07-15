@@ -342,7 +342,7 @@ export const deleteEntregador = createServerFn({ method: "POST" })
 export const updateDistribuidoraConfig = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: {
-    nome: string; telefone?: string;
+    nome_fantasia: string; razao_social?: string | null; telefone?: string;
     horario_abertura: string; horario_fechamento: string;
     taxa_entrega_padrao: number; tempo_estimado_min: number;
     cnpj?: string | null;
@@ -351,7 +351,8 @@ export const updateDistribuidoraConfig = createServerFn({ method: "POST" })
     logo_url?: string | null;
   }) =>
     z.object({
-      nome: z.string().min(2).max(80),
+      nome_fantasia: z.string().min(2).max(120),
+      razao_social: z.string().max(200).nullish(),
       telefone: z.string().max(20).optional(),
       horario_abertura: z.string().regex(/^\d{2}:\d{2}$/),
       horario_fechamento: z.string().regex(/^\d{2}:\d{2}$/),
@@ -369,7 +370,10 @@ export const updateDistribuidoraConfig = createServerFn({ method: "POST" })
     }).parse(d))
   .handler(async ({ data, context }) => {
     const payload: Record<string, unknown> = {
-      nome: data.nome, telefone: data.telefone ?? null,
+      nome_fantasia: data.nome_fantasia,
+      nome: data.nome_fantasia, // legado, mantido em sync pelo trigger também
+      razao_social: data.razao_social ?? null,
+      telefone: data.telefone ?? null,
       horario_abertura: data.horario_abertura, horario_fechamento: data.horario_fechamento,
       taxa_entrega_padrao: data.taxa_entrega_padrao, tempo_estimado_min: data.tempo_estimado_min,
       cnpj: data.cnpj ?? null,
