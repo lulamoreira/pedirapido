@@ -106,23 +106,26 @@ export const checkoutLojaPublica = createServerFn({ method: "POST" })
       .from("clientes").select("id")
       .eq("distribuidora_id", dist.id).eq("telefone", digits).maybeSingle();
     let clienteId = existing?.id as string | undefined;
+    const nomeNorm = normalizeProperName(data.cliente.nome);
+    const endNorm = normalizeSentence(data.cliente.endereco);
     if (clienteId) {
       await supabaseAdmin.from("clientes").update({
-        nome: data.cliente.nome,
-        endereco: data.cliente.endereco,
+        nome: nomeNorm,
+        endereco: endNorm,
         cep: data.cliente.cep ?? null,
       }).eq("id", clienteId);
     } else {
       const { data: novo, error: eCli } = await supabaseAdmin.from("clientes").insert({
         distribuidora_id: dist.id,
-        nome: data.cliente.nome,
+        nome: nomeNorm,
         telefone: digits,
-        endereco: data.cliente.endereco,
+        endereco: endNorm,
         cep: data.cliente.cep ?? null,
       }).select("id").single();
       if (eCli) throw eCli;
       clienteId = novo.id;
     }
+
 
     // Produtos + validação categoria por plano
     const ids = data.itens.map(i => i.produto_id);
