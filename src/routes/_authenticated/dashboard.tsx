@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getDashboard } from "@/lib/aquaflow.functions";
 import { formatBRL, daysUntil } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
 import { NovoPedidoModal } from "@/components/NovoPedidoModal";
+import { useSessionUser } from "@/hooks/useSessionUser";
+import { isMasterEmail } from "@/lib/isMaster";
 import { Bell, TrendingUp, Package, AlertTriangle, Sparkles, Plus, Shield } from "lucide-react";
 
 const dashOpts = queryOptions({
