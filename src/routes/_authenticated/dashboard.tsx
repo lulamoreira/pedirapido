@@ -205,14 +205,24 @@ function Dashboard() {
         ) : (
           <ul className="divide-y divide-border">
             {data.pedidosAtivos.map((p: any) => (
-              <li key={p.id}>
-                <Link to="/pedidos/$id" params={{ id: p.id }} className="flex items-center justify-between gap-3 p-4 hover:bg-secondary/40">
-                  <div className="min-w-0">
+              <li key={p.id} className="flex items-center justify-between gap-3 p-4 hover:bg-secondary/40">
+                <div className="min-w-0 flex-1">
+                  {p.cliente?.id ? (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCliente(p.cliente.id)}
+                      className="truncate text-sm font-semibold text-primary hover:underline text-left"
+                    >
+                      {p.cliente?.nome ?? "Cliente"}
+                    </button>
+                  ) : (
                     <div className="truncate text-sm font-semibold">{p.cliente?.nome ?? "Cliente"}</div>
-                    <div className="text-xs text-muted-foreground">{formatBRL(p.total)}</div>
-                  </div>
-                  <StatusBadge status={p.status} />
-                </Link>
+                  )}
+                  <Link to="/pedidos/$id" params={{ id: p.id }} className="block text-xs text-muted-foreground hover:underline">
+                    {formatBRL(p.total)} · Ver pedido →
+                  </Link>
+                </div>
+                <StatusBadge status={p.status} />
               </li>
             ))}
           </ul>
@@ -220,6 +230,12 @@ function Dashboard() {
       </div>
 
       <NovoPedidoModal open={showNovo} onClose={() => setShowNovo(false)} />
+      <ClienteProfileSheet
+        clienteId={selectedCliente}
+        open={!!selectedCliente}
+        onOpenChange={(o) => !o && setSelectedCliente(null)}
+      />
     </div>
   );
 }
+
