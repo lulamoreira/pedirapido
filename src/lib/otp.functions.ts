@@ -44,7 +44,7 @@ export const requestOtp = createServerFn({ method: "POST" })
       .order("created_at", { ascending: false });
     if (eRec) throw eRec;
 
-    const list = (recentes ?? []) as Array<{ id: string; created_at: string }>;
+    const list = ((recentes ?? []) as unknown) as Array<{ id: string; created_at: string }>;
     if (list.length >= 5) {
       throw new Error("Muitas solicitações, tente mais tarde.");
     }
