@@ -21,6 +21,7 @@ type Form = {
   taxa_entrega_padrao: number; tempo_estimado_min: number;
   cep: string; logradouro: string; numero: string; complemento: string;
   bairro: string; cidade: string; uf: string;
+  verificacao_whatsapp: boolean;
 };
 
 const EMPTY: Form = {
@@ -31,6 +32,7 @@ const EMPTY: Form = {
   taxa_entrega_padrao: 0, tempo_estimado_min: 45,
   cep: "", logradouro: "", numero: "", complemento: "",
   bairro: "", cidade: "", uf: "",
+  verificacao_whatsapp: false,
 };
 
 function ConfigPage() {
