@@ -392,10 +392,14 @@ export const updateDistribuidoraConfig = createServerFn({ method: "POST" })
       horario_abertura: data.horario_abertura, horario_fechamento: data.horario_fechamento,
       taxa_entrega_padrao: data.taxa_entrega_padrao, tempo_estimado_min: data.tempo_estimado_min,
       cnpj: data.cnpj ?? null,
-      cep: data.cep ?? null, logradouro: data.logradouro ?? null, numero: data.numero ?? null,
-      complemento: data.complemento ?? null, bairro: data.bairro ?? null,
+      cep: data.cep ?? null,
+      logradouro: data.logradouro ? normalizeSentence(data.logradouro) : null,
+      numero: data.numero ?? null,
+      complemento: data.complemento ? normalizeSentence(data.complemento) : null,
+      bairro: data.bairro ? normalizeSentence(data.bairro) : null,
       cidade: data.cidade ?? null, uf: data.uf ?? null,
     };
+
     if (data.logo_url !== undefined) payload.logo_url = data.logo_url;
 
     // Slug: validar unicidade se enviado
