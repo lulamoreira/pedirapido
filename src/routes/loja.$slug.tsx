@@ -9,8 +9,9 @@ import { maskCnpj } from "@/lib/br-utils";
 import { toast } from "sonner";
 import {
   ShoppingBag, Plus, Minus, Clock, MapPin, Droplet, Wine, Package as PkgIcon,
-  Cookie, Sparkles, ChevronLeft, X, Loader2, CheckCircle2, Copy, Search,
+  Cookie, Sparkles, ChevronLeft, X, Loader2, CheckCircle2, Copy, Search, Moon,
 } from "lucide-react";
+
 import {
   getLojaPublica, findClientePublico, checkoutLojaPublica,
 } from "@/lib/loja.functions";
@@ -229,8 +230,29 @@ function LojaPage() {
         </div>
       </header>
 
+      {/* Banner de loja fechada */}
+      {!d.aberto && (
+        <div className="mx-auto max-w-lg px-4 pt-4">
+          <div className="rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-yellow-100 p-4 flex items-start gap-3">
+            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-amber-500 text-white">
+              <Moon className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1 text-sm">
+              <div className="font-black text-amber-900">🌙 Fechado no momento</div>
+              <p className="text-xs text-amber-800 mt-0.5">
+                {d.proximoDia != null && d.proximoHorario
+                  ? <>Abrimos <b>{["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"][d.proximoDia]}</b> às <b>{d.proximoHorario}</b>.</>
+                  : "Consulte os horários de atendimento."}
+                {" "}Você pode adicionar itens e enviar como <b>pré-pedido</b> — despacharemos assim que abrirmos.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Produtos */}
       <main className="mx-auto max-w-lg px-4 py-4">
+
         {produtosFiltrados.length === 0 ? (
           <div className="rounded-3xl bg-white p-8 text-center shadow-soft">
             <PkgIcon className="mx-auto h-10 w-10 text-muted-foreground/60" />
@@ -269,12 +291,12 @@ function LojaPage() {
                   ) : (
                     <button
                       onClick={() => addToCart(p)}
-                      disabled={!d.aberto}
-                      className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl gradient-primary text-primary-foreground shadow-soft disabled:opacity-50"
+                      className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl gradient-primary text-primary-foreground shadow-soft"
                       aria-label="Adicionar"
                     >
                       <Plus className="h-5 w-5" />
                     </button>
+
                   )}
                 </li>
               );
@@ -315,12 +337,16 @@ function LojaPage() {
           distribuidoraId={data!.distribuidora.id}
           taxaEntrega={Number(d.taxa_entrega_padrao ?? 0)}
           cart={cart}
+          isClosed={!d.aberto}
+          proximoDia={d.proximoDia ?? null}
+          proximoHorario={d.proximoHorario ?? null}
           onClose={() => setCheckoutOpen(false)}
           onUpdateQty={updateQty}
           onRemove={removeItem}
           onSuccess={() => setCart([])}
         />
       )}
+
     </div>
   );
 }
@@ -331,11 +357,15 @@ type CheckoutProps = {
   distribuidoraId: string;
   taxaEntrega: number;
   cart: CartItem[];
+  isClosed: boolean;
+  proximoDia: number | null;
+  proximoHorario: string | null;
   onClose: () => void;
   onUpdateQty: (id: string, delta: number) => void;
   onRemove: (id: string) => void;
   onSuccess: () => void;
 };
+
 
 function CheckoutModal(p: CheckoutProps) {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
@@ -420,7 +450,9 @@ function CheckoutModal(p: CheckoutProps) {
           itens: p.cart.map(i => ({ produto_id: i.produto_id, quantidade: i.quantidade })),
           forma_pagamento: forma,
           troco_para: forma === "dinheiro" && troco ? Number(troco.replace(",", ".")) : null,
+          is_pre_order: p.isClosed,
         },
+
       });
       setResultado(r);
       setStep(4);
@@ -454,8 +486,21 @@ function CheckoutModal(p: CheckoutProps) {
         <div className="max-h-[75vh] overflow-y-auto p-4 space-y-3 bg-[#F7F9FC]">
           {step === 1 && (
             <>
+              {p.isClosed && p.cart.length > 0 && (
+                <div className="rounded-2xl border-2 border-amber-300 bg-amber-50 p-3 text-xs text-amber-900 flex items-start gap-2">
+                  <Moon className="h-4 w-4 mt-0.5 shrink-0 text-amber-600" />
+                  <div>
+                    <b>Estamos fora do horário de funcionamento.</b>{" "}
+                    {p.proximoDia != null && p.proximoHorario ? (
+                      <>Reabrimos <b>{["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"][p.proximoDia]}</b> às <b>{p.proximoHorario}</b>. </>
+                    ) : null}
+                    Deseja confirmar seu pedido como <b>prioridade</b> assim que a loja abrir?
+                  </div>
+                </div>
+              )}
               {p.cart.length === 0 ? (
                 <p className="py-10 text-center text-sm text-muted-foreground">Sacola vazia</p>
+
               ) : (
                 <>
                   <ul className="space-y-2">
@@ -606,7 +651,7 @@ function CheckoutModal(p: CheckoutProps) {
           <div className="p-4 border-t bg-white">
             {step === 1 && (
               <Button onClick={() => setStep(2)} disabled={p.cart.length === 0} className="w-full rounded-2xl h-12 gradient-primary font-black">
-                Continuar · {fmt(total)}
+                {p.isClosed ? `Confirmar pré-pedido · ${fmt(total)}` : `Continuar · ${fmt(total)}`}
               </Button>
             )}
             {step === 2 && (
@@ -616,8 +661,9 @@ function CheckoutModal(p: CheckoutProps) {
             )}
             {step === 3 && (
               <Button onClick={finalizar} disabled={loading} className="w-full rounded-2xl h-12 gradient-primary font-black">
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : `Finalizar pedido · ${fmt(total)}`}
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : (p.isClosed ? `Enviar pré-pedido · ${fmt(total)}` : `Finalizar pedido · ${fmt(total)}`)}
               </Button>
+
             )}
           </div>
         )}

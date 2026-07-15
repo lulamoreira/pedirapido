@@ -27,11 +27,12 @@ export const getDashboard = createServerFn({ method: "GET" })
     const startOfDay = new Date(); startOfDay.setHours(0, 0, 0, 0);
     const startOfMonth = new Date(); startOfMonth.setDate(1); startOfMonth.setHours(0, 0, 0, 0);
 
-    const [{ data: pedidosHoje }, { data: pedidosMes }, { data: ativos }, { data: produtos }] = await Promise.all([
+    const [{ data: pedidosHoje }, { data: pedidosMes }, { data: ativos }, { data: produtos }, { data: preOrders }] = await Promise.all([
       supabase.from("pedidos").select("total,status").eq("distribuidora_id", dist.id).gte("created_at", startOfDay.toISOString()),
       supabase.from("pedidos").select("id").eq("distribuidora_id", dist.id).gte("created_at", startOfMonth.toISOString()),
-      supabase.from("pedidos").select("id,total,status,created_at,cliente:clientes(nome,telefone)").eq("distribuidora_id", dist.id).in("status", ["pendente", "preparo", "pago", "rota"]).order("created_at", { ascending: false }).limit(10),
+      supabase.from("pedidos").select("id,total,status,created_at,cliente:clientes(id,nome,telefone)").eq("distribuidora_id", dist.id).in("status", ["pendente", "preparo", "pago", "rota"]).order("created_at", { ascending: false }).limit(10),
       supabase.from("produtos").select("id,nome,estoque,estoque_minimo").eq("distribuidora_id", dist.id).eq("ativo", true),
+      supabase.from("pedidos").select("id").eq("distribuidora_id", dist.id).eq("is_pre_order", true).eq("status", "pendente"),
     ]);
 
     const receitaHoje = (pedidosHoje ?? []).filter((p: any) => p.status !== "cancelado").reduce((s: number, p: any) => s + Number(p.total), 0);
@@ -45,24 +46,28 @@ export const getDashboard = createServerFn({ method: "GET" })
       totalMes: (pedidosMes ?? []).length,
       pedidosAtivos: ativos ?? [],
       estoqueBaixo: (produtos ?? []).filter((p: any) => p.estoque <= p.estoque_minimo),
+      preOrdersCount: (preOrders ?? []).length,
       limiteFree: 50,
       isAdminMaster: !!masterRole || isMasterEmail,
     };
   });
 
+
 // -------- Pedidos list --------
 export const listPedidos = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { status?: string } | undefined) => d ?? {})
+  .inputValidator((d: { status?: string; preOrder?: boolean } | undefined) => d ?? {})
   .handler(async ({ data, context }) => {
     const distId = await getDistId(context.supabase, context.userId);
     if (!distId) return [];
-    let q = context.supabase.from("pedidos").select("id,total,status,created_at,cliente:clientes(nome,telefone,endereco)").eq("distribuidora_id", distId).order("created_at", { ascending: false }).limit(100);
+    let q = context.supabase.from("pedidos").select("id,total,status,created_at,is_pre_order,cliente:clientes(id,nome,telefone,endereco)").eq("distribuidora_id", distId).order("created_at", { ascending: false }).limit(100);
     if (data.status && data.status !== "todos") q = q.eq("status", data.status as never);
+    if (data.preOrder) q = q.eq("is_pre_order", true);
     const { data: pedidos, error } = await q;
     if (error) throw error;
     return pedidos ?? [];
   });
+
 
 // -------- Pedido detail --------
 export const getPedido = createServerFn({ method: "GET" })
@@ -637,3 +642,66 @@ export const getPlano = createServerFn({ method: "GET" })
   });
 
 export const signOutServer = createServerFn({ method: "POST" }).handler(async () => ({ ok: true }));
+
+// -------- Cliente: histórico completo --------
+export const getClienteHistorico = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { clienteId: string }) => z.object({ clienteId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const distId = await getDistId(context.supabase, context.userId);
+    if (!distId) throw new Error("Distribuidora não encontrada");
+    const { data: cliente, error: eCli } = await context.supabase
+      .from("clientes").select("id,nome,telefone,endereco,cep,created_at")
+      .eq("id", data.clienteId).eq("distribuidora_id", distId).maybeSingle();
+    if (eCli) throw eCli;
+    if (!cliente) throw new Error("Cliente não encontrado");
+    const { data: pedidos } = await context.supabase
+      .from("pedidos")
+      .select("id,status,total,created_at,forma_pagamento,is_pre_order,entregador:entregadores(nome,veiculo_placa),itens:pedido_itens(quantidade,produto:produtos(nome,marca,tipo_embalagem,volume_valor,volume_unidade))")
+      .eq("cliente_id", data.clienteId)
+      .eq("distribuidora_id", distId)
+      .order("created_at", { ascending: false })
+      .limit(200);
+    return { cliente, pedidos: pedidos ?? [] };
+  });
+
+// -------- Horários de funcionamento --------
+export const listHorarios = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const distId = await getDistId(context.supabase, context.userId);
+    if (!distId) return [];
+    const { data } = await context.supabase
+      .from("horarios_funcionamento")
+      .select("dia_semana,horario_abertura,horario_fechamento,is_fechado_o_dia_todo")
+      .eq("distribuidora_id", distId)
+      .order("dia_semana");
+    return data ?? [];
+  });
+
+export const saveHorarios = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({
+    horarios: z.array(z.object({
+      dia_semana: z.number().int().min(0).max(6),
+      horario_abertura: z.string().nullable(),
+      horario_fechamento: z.string().nullable(),
+      is_fechado_o_dia_todo: z.boolean(),
+    })).length(7),
+  }).parse(d))
+  .handler(async ({ data, context }) => {
+    const distId = await getDistId(context.supabase, context.userId);
+    if (!distId) throw new Error("Distribuidora não encontrada");
+    const rows = data.horarios.map(h => ({
+      distribuidora_id: distId,
+      dia_semana: h.dia_semana,
+      horario_abertura: h.is_fechado_o_dia_todo ? null : (h.horario_abertura || "08:00"),
+      horario_fechamento: h.is_fechado_o_dia_todo ? null : (h.horario_fechamento || "18:00"),
+      is_fechado_o_dia_todo: h.is_fechado_o_dia_todo,
+    }));
+    const { error } = await context.supabase
+      .from("horarios_funcionamento")
+      .upsert(rows, { onConflict: "distribuidora_id,dia_semana" });
+    if (error) throw error;
+    return { ok: true };
+  });

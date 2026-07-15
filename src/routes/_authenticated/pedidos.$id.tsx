@@ -1,10 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { getPedido, updatePedidoStatus, assignEntregador, listEntregadores, listNotificacoes } from "@/lib/aquaflow.functions";
 import { formatBRL, formatPhone } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
+import { ClienteProfileSheet } from "@/components/ClienteProfileSheet";
 import { ArrowLeft, Copy, CheckCircle2, MapPin, Phone, Bike, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/_authenticated/pedidos/$id")({
   component: PedidoDetail,
@@ -16,9 +19,11 @@ function PedidoDetail() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const [showCliente, setShowCliente] = useState(false);
   const { data: pedido, isLoading } = useQuery({ queryKey: ["pedido", id], queryFn: () => getPedido({ data: { id } }) });
   const { data: entregadores = [] } = useQuery({ queryKey: ["entregadores"], queryFn: () => listEntregadores() });
   const { data: notifs = [] } = useQuery({ queryKey: ["notifs", id], queryFn: () => listNotificacoes({ data: { pedidoId: id } }) });
+
 
   const mut = useMutation({
     mutationFn: (status: string) => updatePedidoStatus({ data: { id, status } }),
@@ -64,12 +69,19 @@ function PedidoDetail() {
 
       <div className="card-float mt-4 p-4">
         <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Cliente</h2>
-        <p className="mt-2 text-base font-bold">{p.cliente.nome}</p>
+        <button
+          type="button"
+          onClick={() => setShowCliente(true)}
+          className="mt-2 text-base font-bold text-primary hover:underline text-left"
+        >
+          {p.cliente.nome}
+        </button>
         <div className="mt-2 space-y-1 text-sm text-muted-foreground">
           <div className="flex items-center gap-2"><Phone className="h-4 w-4" /> {formatPhone(p.cliente.telefone)}</div>
           {p.cliente.endereco && <div className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0" /> {p.cliente.endereco}</div>}
         </div>
       </div>
+
 
       {/* Entregador — só quando pago ou em preparo */}
       {(p.status === "pago" || p.status === "preparo" || p.status === "rota") && (
@@ -183,6 +195,12 @@ function PedidoDetail() {
           <button onClick={() => mut.mutate("cancelado")} className="w-full rounded-full bg-secondary py-3 text-sm font-semibold text-muted-foreground">Cancelar pedido</button>
         )}
       </div>
+      <ClienteProfileSheet
+        clienteId={p.cliente?.id ?? null}
+        open={showCliente}
+        onOpenChange={setShowCliente}
+      />
     </div>
   );
 }
+

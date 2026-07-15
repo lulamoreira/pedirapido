@@ -186,6 +186,47 @@ export type Database = {
           },
         ]
       }
+      horarios_funcionamento: {
+        Row: {
+          created_at: string
+          dia_semana: number
+          distribuidora_id: string
+          horario_abertura: string | null
+          horario_fechamento: string | null
+          id: string
+          is_fechado_o_dia_todo: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          dia_semana: number
+          distribuidora_id: string
+          horario_abertura?: string | null
+          horario_fechamento?: string | null
+          id?: string
+          is_fechado_o_dia_todo?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          dia_semana?: number
+          distribuidora_id?: string
+          horario_abertura?: string | null
+          horario_fechamento?: string | null
+          id?: string
+          is_fechado_o_dia_todo?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horarios_funcionamento_distribuidora_id_fkey"
+            columns: ["distribuidora_id"]
+            isOneToOne: false
+            referencedRelation: "distribuidoras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notificacoes_whatsapp: {
         Row: {
           created_at: string
@@ -289,6 +330,7 @@ export type Database = {
           entregue_at: string | null
           forma_pagamento: Database["public"]["Enums"]["forma_pagamento"]
           id: string
+          is_pre_order: boolean
           observacoes: string | null
           pago_at: string | null
           status: Database["public"]["Enums"]["pedido_status"]
@@ -305,6 +347,7 @@ export type Database = {
           entregue_at?: string | null
           forma_pagamento?: Database["public"]["Enums"]["forma_pagamento"]
           id?: string
+          is_pre_order?: boolean
           observacoes?: string | null
           pago_at?: string | null
           status?: Database["public"]["Enums"]["pedido_status"]
@@ -321,6 +364,7 @@ export type Database = {
           entregue_at?: string | null
           forma_pagamento?: Database["public"]["Enums"]["forma_pagamento"]
           id?: string
+          is_pre_order?: boolean
           observacoes?: string | null
           pago_at?: string | null
           status?: Database["public"]["Enums"]["pedido_status"]

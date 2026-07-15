@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { getPlano, updateDistribuidoraConfig } from "@/lib/aquaflow.functions";
+import { getPlano, updateDistribuidoraConfig, listHorarios, saveHorarios } from "@/lib/aquaflow.functions";
 import { ArrowLeft, Store, Clock, Truck, Timer, MapPin, Upload, Loader2, X, ImageIcon, FileText, Link2 } from "lucide-react";
 import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
 import { maskCnpj, maskCep, validateCnpj, resizeImageToSquareDataUrl } from "@/lib/br-utils";
+
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
   head: () => ({ meta: [{ title: "Configurações — Pedirápido" }] }),
@@ -306,12 +308,9 @@ function ConfigPage() {
           </Field>
         </Card>
 
-        <Card icon={Clock} title="Horário de funcionamento">
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Abre às"><input type="time" required className="input" value={form.horario_abertura} onChange={(e) => setForm({ ...form, horario_abertura: e.target.value })} /></Field>
-            <Field label="Fecha às"><input type="time" required className="input" value={form.horario_fechamento} onChange={(e) => setForm({ ...form, horario_fechamento: e.target.value })} /></Field>
-          </div>
-        </Card>
+        <WeeklyHoursCard />
+
+
 
         <Card icon={Truck} title="Taxa de entrega padrão">
           <Field label="Valor (R$)">
@@ -356,3 +355,118 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 // suppress unused import warning
 void FileText;
+
+// ============ Horários por dia da semana ============
+const DIAS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+
+type HorarioRow = {
+  dia_semana: number;
+  horario_abertura: string;
+  horario_fechamento: string;
+  is_fechado_o_dia_todo: boolean;
+};
+
+function defaultHorarios(): HorarioRow[] {
+  return Array.from({ length: 7 }, (_, i) => ({
+    dia_semana: i,
+    horario_abertura: "08:00",
+    horario_fechamento: "18:00",
+    is_fechado_o_dia_todo: i === 0,
+  }));
+}
+
+function WeeklyHoursCard() {
+  const qc = useQueryClient();
+  const { data } = useQuery({ queryKey: ["horarios"], queryFn: () => listHorarios() });
+  const [rows, setRows] = useState<HorarioRow[]>(defaultHorarios());
+
+  useEffect(() => {
+    if (data) {
+      const base = defaultHorarios();
+      for (const h of data as any[]) {
+        const idx = h.dia_semana;
+        base[idx] = {
+          dia_semana: idx,
+          horario_abertura: (h.horario_abertura ?? "08:00").toString().slice(0, 5),
+          horario_fechamento: (h.horario_fechamento ?? "18:00").toString().slice(0, 5),
+          is_fechado_o_dia_todo: !!h.is_fechado_o_dia_todo,
+        };
+      }
+      setRows(base);
+    }
+  }, [data]);
+
+  const mut = useMutation({
+    mutationFn: () => saveHorarios({ data: { horarios: rows } }),
+    onSuccess: () => {
+      toast.success("Horários salvos!");
+      qc.invalidateQueries({ queryKey: ["horarios"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const update = (i: number, patch: Partial<HorarioRow>) =>
+    setRows((r) => r.map((row, idx) => (idx === i ? { ...row, ...patch } : row)));
+
+  return (
+    <div className="card-float p-5">
+      <div className="mb-3 flex items-center gap-2 text-sm font-bold">
+        <div className="grid h-9 w-9 place-items-center rounded-xl bg-accent text-primary">
+          <Clock className="h-4 w-4" />
+        </div>
+        Horário de funcionamento
+      </div>
+      <p className="mb-4 text-xs text-muted-foreground">
+        Configure os horários para cada dia da semana. Fora do horário, os clientes podem enviar <b>pré-pedidos</b> prioritários.
+      </p>
+      <div className="space-y-2">
+        {rows.map((row, i) => (
+          <div key={i} className="rounded-2xl border p-3 space-y-3 bg-secondary/30">
+            <div className="flex items-center justify-between gap-3">
+              <div className="font-bold text-sm">{DIAS[i]}</div>
+              <div className="flex items-center gap-2">
+                <span className={`text-xs font-semibold ${row.is_fechado_o_dia_todo ? "text-muted-foreground" : "text-primary"}`}>
+                  {row.is_fechado_o_dia_todo ? "Fechado" : "Aberto"}
+                </span>
+                <Switch
+                  checked={!row.is_fechado_o_dia_todo}
+                  onCheckedChange={(v) => update(i, { is_fechado_o_dia_todo: !v })}
+                />
+              </div>
+            </div>
+            {!row.is_fechado_o_dia_todo && (
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block">
+                  <span className="mb-1 block text-[10px] font-semibold text-muted-foreground uppercase">Abre às</span>
+                  <input
+                    type="time"
+                    className="input"
+                    value={row.horario_abertura}
+                    onChange={(e) => update(i, { horario_abertura: e.target.value })}
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-[10px] font-semibold text-muted-foreground uppercase">Fecha às</span>
+                  <input
+                    type="time"
+                    className="input"
+                    value={row.horario_fechamento}
+                    onChange={(e) => update(i, { horario_fechamento: e.target.value })}
+                  />
+                </label>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      <button
+        type="button"
+        onClick={() => mut.mutate()}
+        disabled={mut.isPending}
+        className="mt-4 w-full rounded-full bg-primary py-3 text-sm font-bold text-primary-foreground shadow-soft disabled:opacity-50"
+      >
+        {mut.isPending ? "Salvando horários…" : "Salvar horários"}
+      </button>
+    </div>
+  );
+}

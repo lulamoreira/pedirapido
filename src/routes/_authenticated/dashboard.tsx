@@ -5,10 +5,12 @@ import { getDashboard } from "@/lib/aquaflow.functions";
 import { formatBRL, daysUntil } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
 import { NovoPedidoModal } from "@/components/NovoPedidoModal";
+import { ClienteProfileSheet } from "@/components/ClienteProfileSheet";
 import { useSessionUser } from "@/hooks/useSessionUser";
 import { isMasterEmail } from "@/lib/isMaster";
-import { Bell, TrendingUp, Package, AlertTriangle, Sparkles, Plus, Shield, Globe, Share2 } from "lucide-react";
+import { Bell, TrendingUp, Package, AlertTriangle, Sparkles, Plus, Shield, Globe, Share2, Moon } from "lucide-react";
 import { toast } from "sonner";
+
 
 const dashOpts = queryOptions({
   queryKey: ["dashboard"],
@@ -26,6 +28,8 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 function Dashboard() {
   const { data } = useSuspenseQuery(dashOpts);
   const [showNovo, setShowNovo] = useState(false);
+  const [selectedCliente, setSelectedCliente] = useState<string | null>(null);
+
   const { user } = useSessionUser();
   const clientMaster = isMasterEmail(user?.email);
   useEffect(() => { if (user?.email) console.log("[Pedirápido] sessão:", user.email, "master?", clientMaster); }, [user?.email, clientMaster]);
@@ -106,6 +110,31 @@ function Dashboard() {
         );
       })()}
 
+      {/* Alerta de Pré-pedidos */}
+      {data.preOrdersCount > 0 && (
+        <div className="rounded-2xl border-2 border-amber-400 bg-gradient-to-br from-amber-50 to-yellow-100 p-4 shadow-float">
+          <div className="flex items-start gap-3">
+            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-amber-500 text-white animate-pulse">
+              <Moon className="h-6 w-6" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-[10px] font-black uppercase tracking-wider text-amber-700">🚨 Atenção</div>
+              <p className="mt-1 text-sm font-bold text-amber-900">
+                Você tem {data.preOrdersCount} {data.preOrdersCount === 1 ? "pré-pedido acumulado" : "pré-pedidos acumulados"} feito{data.preOrdersCount === 1 ? "" : "s"} fora do horário de funcionamento!
+              </p>
+              <p className="mt-0.5 text-xs text-amber-800">Abra o sistema e despache para os entregadores.</p>
+              <Link
+                to="/pedidos"
+                search={{ preOrder: true } as any}
+                className="mt-3 inline-flex items-center gap-1 rounded-full bg-amber-600 px-4 py-1.5 text-xs font-black text-white shadow-soft hover:bg-amber-700"
+              >
+                Ver pré-pedidos →
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* CTA Novo Pedido */}
       <button
         onClick={() => setShowNovo(true)}
@@ -119,6 +148,7 @@ function Dashboard() {
           <div className="text-xs opacity-90">Venda balcão · PIX, Cartão ou Dinheiro</div>
         </div>
       </button>
+
 
       {isFree && trialDays > 0 && (
         <Link to="/plano" className="flex items-center gap-3 rounded-2xl bg-card p-4 shadow-soft ring-1 ring-primary/20">
@@ -175,14 +205,24 @@ function Dashboard() {
         ) : (
           <ul className="divide-y divide-border">
             {data.pedidosAtivos.map((p: any) => (
-              <li key={p.id}>
-                <Link to="/pedidos/$id" params={{ id: p.id }} className="flex items-center justify-between gap-3 p-4 hover:bg-secondary/40">
-                  <div className="min-w-0">
+              <li key={p.id} className="flex items-center justify-between gap-3 p-4 hover:bg-secondary/40">
+                <div className="min-w-0 flex-1">
+                  {p.cliente?.id ? (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCliente(p.cliente.id)}
+                      className="truncate text-sm font-semibold text-primary hover:underline text-left"
+                    >
+                      {p.cliente?.nome ?? "Cliente"}
+                    </button>
+                  ) : (
                     <div className="truncate text-sm font-semibold">{p.cliente?.nome ?? "Cliente"}</div>
-                    <div className="text-xs text-muted-foreground">{formatBRL(p.total)}</div>
-                  </div>
-                  <StatusBadge status={p.status} />
-                </Link>
+                  )}
+                  <Link to="/pedidos/$id" params={{ id: p.id }} className="block text-xs text-muted-foreground hover:underline">
+                    {formatBRL(p.total)} · Ver pedido →
+                  </Link>
+                </div>
+                <StatusBadge status={p.status} />
               </li>
             ))}
           </ul>
@@ -190,6 +230,12 @@ function Dashboard() {
       </div>
 
       <NovoPedidoModal open={showNovo} onClose={() => setShowNovo(false)} />
+      <ClienteProfileSheet
+        clienteId={selectedCliente}
+        open={!!selectedCliente}
+        onOpenChange={(o) => !o && setSelectedCliente(null)}
+      />
     </div>
   );
 }
+
