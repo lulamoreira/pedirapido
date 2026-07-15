@@ -427,6 +427,8 @@ export const updateDistribuidoraConfig = createServerFn({ method: "POST" })
     };
 
     if (data.logo_url !== undefined) payload.logo_url = data.logo_url;
+    if (data.verificacao_whatsapp !== undefined) payload.verificacao_whatsapp = data.verificacao_whatsapp;
+
 
     // Slug: validar unicidade se enviado
     if (data.slug !== undefined && data.slug !== null && data.slug !== "") {
