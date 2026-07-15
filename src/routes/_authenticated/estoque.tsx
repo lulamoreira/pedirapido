@@ -166,6 +166,27 @@ function EstoquePage() {
                 <Field label="Preço (R$)" value={editing.preco} type="number" onChange={(v) => setEditing({ ...editing, preco: v })} />
                 <Field label="Estoque" value={editing.estoque} type="number" onChange={(v) => setEditing({ ...editing, estoque: v })} />
               </div>
+
+              <div className="grid grid-cols-[1fr_110px] gap-3">
+                <Field
+                  label="Conteúdo / Volume"
+                  value={editing.volume_valor}
+                  type="text"
+                  onChange={(v) => setEditing({ ...editing, volume_valor: v.replace(/[^0-9.,]/g, "") })}
+                />
+                <label className="block">
+                  <span className="mb-1 block text-xs font-semibold text-muted-foreground">Unidade</span>
+                  <select
+                    value={editing.volume_unidade}
+                    onChange={(e) => setEditing({ ...editing, volume_unidade: e.target.value as Unidade })}
+                    className="w-full rounded-xl border border-input bg-card px-3 py-3 text-sm outline-none focus:border-primary"
+                  >
+                    <option value="L">L (Litros)</option>
+                    <option value="ml">ml (Mililitros)</option>
+                  </select>
+                </label>
+              </div>
+
               <Field label="Alerta em (un)" value={editing.estoque_minimo} type="number" onChange={(v) => setEditing({ ...editing, estoque_minimo: v })} />
             </div>
             <button
