@@ -32,13 +32,34 @@ function EntregadorPage() {
         <Link to="/dashboard" className="grid h-10 w-10 place-items-center rounded-2xl bg-card shadow-soft">
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <div>
+        <div className="flex-1">
           <h1 className="text-xl font-black">Minhas entregas</h1>
-          <p className="text-xs text-muted-foreground">{data.length} na fila</p>
+          <p className="text-xs text-muted-foreground">
+            {meu ? `${meu.nome}${meu.veiculo_placa ? " · " + meu.veiculo_placa : ""} · ${data.length} na fila` : "Vincule sua conta"}
+          </p>
         </div>
       </div>
 
-      {isLoading && <div className="mt-6 text-sm text-muted-foreground">Carregando…</div>}
+      {loadingMeu && <div className="mt-6 text-sm text-muted-foreground">Carregando…</div>}
+
+      {!loadingMeu && !meu && (
+        <div className="card-float mt-6 p-5">
+          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-accent"><Bike className="h-6 w-6 text-primary" /></div>
+          <h2 className="mt-3 text-base font-black">Vincular conta de entregador</h2>
+          <p className="mt-1 text-xs text-muted-foreground">Informe o telefone cadastrado pela distribuidora para receber suas entregas.</p>
+          <form
+            onSubmit={(e) => { e.preventDefault(); if (tel.replace(/\D/g, "").length >= 8) claim.mutate(); else toast.error("Telefone inválido"); }}
+            className="mt-3 flex gap-2"
+          >
+            <input value={tel} onChange={(e) => setTel(e.target.value)} placeholder="(11) 99999-9999" className="input flex-1" />
+            <button type="submit" disabled={claim.isPending} className="flex items-center gap-1 rounded-full gradient-primary px-4 text-sm font-bold text-primary-foreground shadow-float disabled:opacity-50">
+              <LinkIcon className="h-4 w-4" /> {claim.isPending ? "…" : "Vincular"}
+            </button>
+          </form>
+        </div>
+      )}
+
+      {meu && isLoading && <div className="mt-6 text-sm text-muted-foreground">Carregando entregas…</div>}
 
       <div className="mt-4 space-y-3">
         {data.map((p) => (
