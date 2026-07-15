@@ -3,6 +3,31 @@ import { z } from "zod";
 import { generatePixCode } from "@/lib/pix";
 import { normalizeProperName, normalizeSentence } from "@/lib/text-normalize";
 
+/** Hora atual no fuso America/Sao_Paulo. Retorna dia da semana (0=Dom..6=Sáb)
+ *  e minutos desde a meia-noite, independentemente do TZ do servidor. */
+function nowInSaoPaulo(): { dow: number; minutesNow: number; hhmm: string } {
+  const fmt = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Sao_Paulo",
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  const parts = fmt.formatToParts(new Date());
+  const wk = parts.find((p) => p.type === "weekday")?.value ?? "Sun";
+  const hh = Number(parts.find((p) => p.type === "hour")?.value ?? "0");
+  const mm = Number(parts.find((p) => p.type === "minute")?.value ?? "0");
+  const dowMap: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+  const dow = dowMap[wk] ?? 0;
+  // Intl pode retornar "24" para meia-noite em hour12:false; normaliza.
+  const hour = hh === 24 ? 0 : hh;
+  return {
+    dow,
+    minutesNow: hour * 60 + mm,
+    hhmm: `${String(hour).padStart(2, "0")}:${String(mm).padStart(2, "0")}`,
+  };
+}
+
 
 
 // -------- Carregar loja pública (distribuidora + catálogo) --------
