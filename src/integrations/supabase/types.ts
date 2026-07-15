@@ -17,6 +17,7 @@ export type Database = {
       clientes: {
         Row: {
           cep: string | null
+          complemento: string | null
           created_at: string
           distribuidora_id: string
           endereco: string | null
@@ -26,6 +27,7 @@ export type Database = {
         }
         Insert: {
           cep?: string | null
+          complemento?: string | null
           created_at?: string
           distribuidora_id: string
           endereco?: string | null
@@ -35,6 +37,7 @@ export type Database = {
         }
         Update: {
           cep?: string | null
+          complemento?: string | null
           created_at?: string
           distribuidora_id?: string
           endereco?: string | null
