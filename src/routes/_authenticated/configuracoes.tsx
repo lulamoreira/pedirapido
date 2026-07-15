@@ -242,6 +242,28 @@ function ConfigPage() {
           </Field>
         </Card>
 
+        <Card icon={Link2} title="Link do seu Cardápio">
+          <Field label="Endereço personalizado (slug)">
+            <div className="flex items-center gap-2">
+              <span className="shrink-0 rounded-l-xl bg-secondary px-3 py-2 text-xs font-mono text-muted-foreground">
+                {typeof window !== "undefined" ? window.location.host : "pedirapido.com.br"}/loja/
+              </span>
+              <input
+                className="input flex-1"
+                value={form.slug}
+                onChange={(e) => setForm({ ...form, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") })}
+                placeholder="minha-loja"
+                maxLength={60}
+              />
+            </div>
+            <span className="mt-1 block text-[10px] text-muted-foreground">
+              Use apenas letras minúsculas, números e hífen. Ex.: <b>disqueagua</b>. Deixe em branco para gerar do Nome Fantasia.
+            </span>
+          </Field>
+        </Card>
+
+
+
         <Card icon={MapPin} title="Endereço físico">
           <Field label="CEP">
             <div className="relative">
