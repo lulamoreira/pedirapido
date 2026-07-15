@@ -38,7 +38,7 @@ export const getLojaPublica = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.id);
-    const cols = "id,slug,nome,nome_fantasia,razao_social,cnpj,telefone,plano,taxa_entrega_padrao,horario_abertura,horario_fechamento,tempo_estimado_min,status_assinatura,logo_url,logradouro,numero,complemento,bairro,cidade,uf,cep";
+    const cols = "id,slug,nome,nome_fantasia,razao_social,cnpj,telefone,plano,taxa_entrega_padrao,horario_abertura,horario_fechamento,tempo_estimado_min,status_assinatura,logo_url,logradouro,numero,complemento,bairro,cidade,uf,cep,verificacao_whatsapp";
     const { data: dist, error } = await supabaseAdmin
       .from("distribuidoras")
       .select(cols)
