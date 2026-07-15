@@ -283,7 +283,7 @@ function LojaPage() {
 
       {checkoutOpen && (
         <CheckoutModal
-          distribuidoraId={id}
+          distribuidoraId={data!.distribuidora.id}
           taxaEntrega={Number(d.taxa_entrega_padrao ?? 0)}
           cart={cart}
           onClose={() => setCheckoutOpen(false)}
