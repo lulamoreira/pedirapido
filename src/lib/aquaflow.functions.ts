@@ -349,6 +349,7 @@ export const updateDistribuidoraConfig = createServerFn({ method: "POST" })
     cep?: string | null; logradouro?: string | null; numero?: string | null;
     complemento?: string | null; bairro?: string | null; cidade?: string | null; uf?: string | null;
     logo_url?: string | null;
+    slug?: string | null;
   }) =>
     z.object({
       nome_fantasia: z.string().min(2).max(120),
@@ -367,11 +368,12 @@ export const updateDistribuidoraConfig = createServerFn({ method: "POST" })
       cidade: z.string().max(120).nullish(),
       uf: z.string().max(2).nullish(),
       logo_url: z.string().max(500000).nullish(),
+      slug: z.string().max(60).nullish(),
     }).parse(d))
   .handler(async ({ data, context }) => {
     const payload: Record<string, unknown> = {
       nome_fantasia: data.nome_fantasia,
-      nome: data.nome_fantasia, // legado, mantido em sync pelo trigger também
+      nome: data.nome_fantasia,
       razao_social: data.razao_social ?? null,
       telefone: data.telefone ?? null,
       horario_abertura: data.horario_abertura, horario_fechamento: data.horario_fechamento,
@@ -382,8 +384,36 @@ export const updateDistribuidoraConfig = createServerFn({ method: "POST" })
       cidade: data.cidade ?? null, uf: data.uf ?? null,
     };
     if (data.logo_url !== undefined) payload.logo_url = data.logo_url;
+
+    // Slug: validar unicidade se enviado
+    if (data.slug !== undefined && data.slug !== null && data.slug !== "") {
+      const normalized = data.slug
+        .toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/&/g, " e ")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 60);
+      if (!normalized) throw new Error("Link inválido");
+
+      // Buscar distribuidora atual do usuário
+      const { data: mine } = await context.supabase
+        .from("distribuidoras").select("id").eq("owner_user_id", context.userId).maybeSingle();
+      const myId = (mine as any)?.id;
+
+      const { data: taken } = await context.supabase
+        .from("distribuidoras").select("id").eq("slug", normalized).maybeSingle();
+      if (taken && (taken as any).id !== myId) {
+        throw new Error("Este link já está sendo usado por outra distribuidora.");
+      }
+      payload.slug = normalized;
+    }
+
     const { error } = await context.supabase.from("distribuidoras").update(payload as never).eq("owner_user_id", context.userId);
-    if (error) throw error;
+    if (error) {
+      if ((error as any).code === "23505") throw new Error("Este link já está sendo usado por outra distribuidora.");
+      throw error;
+    }
     return { ok: true };
   });
 
