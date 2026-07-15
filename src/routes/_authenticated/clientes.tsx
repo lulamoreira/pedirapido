@@ -2,13 +2,16 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { useQuery } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
-import { Search, Users, Phone, MapPin, Package } from "lucide-react";
+import { Search, Users, Phone, MapPin, Package, Plus } from "lucide-react";
 import { listClientes } from "@/lib/aquaflow.functions";
 import { BottomNav } from "@/components/BottomNav";
+import { NovoClienteModal } from "@/components/NovoClienteModal";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/clientes")({
   component: ClientesPage,
 });
+
 
 function formatPhone(t: string | null | undefined) {
   if (!t) return "—";
