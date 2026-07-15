@@ -96,7 +96,42 @@ export const updatePedidoStatus = createServerFn({ method: "POST" })
         await (context.supabase as any).from("entregadores").update({ status: "disponivel" }).eq("id", ped.entregador_id);
       }
     }
+
+    // WhatsApp: pós-venda quando entregue
+    if (data.status === "entregue") {
+      const { data: full } = await context.supabase
+        .from("pedidos")
+        .select("id,distribuidora_id,cliente:clientes(nome,telefone),entregador:entregadores(nome,veiculo_modelo,veiculo_placa)")
+        .eq("id", data.id).maybeSingle();
+      const f: any = full;
+      if (f?.cliente?.telefone) {
+        const { notifyAndLog } = await import("@/lib/whatsapp.server");
+        await notifyAndLog(context.supabase, {
+          tipo: "entregue",
+          pedidoId: f.id,
+          distribuidoraId: f.distribuidora_id,
+          telefone: f.cliente.telefone,
+          clienteNome: f.cliente.nome,
+          entregadorNome: f.entregador?.nome,
+          veiculo: f.entregador?.veiculo_modelo,
+          placa: f.entregador?.veiculo_placa,
+        });
+      }
+    }
     return { ok: true };
+  });
+
+// -------- Notificações WhatsApp (log) --------
+export const listNotificacoes = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { pedidoId: string }) => z.object({ pedidoId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { data: rows } = await (context.supabase as any)
+      .from("notificacoes_whatsapp")
+      .select("id,tipo,status,telefone,created_at")
+      .eq("pedido_id", data.pedidoId)
+      .order("created_at", { ascending: false });
+    return rows ?? [];
   });
 
 // -------- Assign entregador --------
