@@ -254,26 +254,6 @@ function LojaPage() {
                       )}
                     >
                       <Icon className="h-3.5 w-3.5" /> {meta.label}
-          {/* Categorias */}
-          {categorias.length > 1 && (
-            <div className="mt-3 -mx-4 px-4 overflow-x-auto scrollbar-hide">
-              <div className="flex gap-2 pb-1">
-                {categorias.map(c => {
-                  const meta = CAT_META[c] ?? { label: c, icon: Sparkles };
-                  const Icon = meta.icon;
-                  const active = catAtiva === c;
-                  return (
-                    <button
-                      key={c}
-                      onClick={() => setCatAtiva(c)}
-                      className={cn(
-                        "shrink-0 flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-black transition",
-                        active
-                          ? "gradient-primary text-primary-foreground shadow-soft"
-                          : "bg-secondary text-foreground"
-                      )}
-                    >
-                      <Icon className="h-3.5 w-3.5" /> {meta.label}
                     </button>
                   );
                 })}
