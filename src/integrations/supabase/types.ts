@@ -233,6 +233,53 @@ export type Database = {
           },
         ]
       }
+      integracoes_pagamento: {
+        Row: {
+          access_token: string | null
+          conectado_em: string | null
+          created_at: string
+          distribuidora_id: string
+          id: string
+          mp_user_id: string | null
+          provedor: string
+          refresh_token: string | null
+          token_expira_em: string | null
+          updated_at: string
+        }
+        Insert: {
+          access_token?: string | null
+          conectado_em?: string | null
+          created_at?: string
+          distribuidora_id: string
+          id?: string
+          mp_user_id?: string | null
+          provedor?: string
+          refresh_token?: string | null
+          token_expira_em?: string | null
+          updated_at?: string
+        }
+        Update: {
+          access_token?: string | null
+          conectado_em?: string | null
+          created_at?: string
+          distribuidora_id?: string
+          id?: string
+          mp_user_id?: string | null
+          provedor?: string
+          refresh_token?: string | null
+          token_expira_em?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integracoes_pagamento_distribuidora_id_fkey"
+            columns: ["distribuidora_id"]
+            isOneToOne: true
+            referencedRelation: "distribuidoras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notificacoes_whatsapp: {
         Row: {
           created_at: string
@@ -280,6 +327,35 @@ export type Database = {
             columns: ["pedido_id"]
             isOneToOne: false
             referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      oauth_states: {
+        Row: {
+          created_at: string
+          distribuidora_id: string
+          expira_em: string
+          state: string
+        }
+        Insert: {
+          created_at?: string
+          distribuidora_id: string
+          expira_em: string
+          state: string
+        }
+        Update: {
+          created_at?: string
+          distribuidora_id?: string
+          expira_em?: string
+          state?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oauth_states_distribuidora_id_fkey"
+            columns: ["distribuidora_id"]
+            isOneToOne: false
+            referencedRelation: "distribuidoras"
             referencedColumns: ["id"]
           },
         ]
