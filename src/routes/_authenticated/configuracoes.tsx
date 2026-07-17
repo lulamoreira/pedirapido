@@ -363,6 +363,13 @@ function ConfigPage() {
           </div>
         </Card>
 
+        <MercadoPagoCard />
+
+
+
+
+
+
 
 
 
