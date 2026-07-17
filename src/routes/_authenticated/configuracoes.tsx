@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { getPlano, updateDistribuidoraConfig, listHorarios, saveHorarios } from "@/lib/aquaflow.functions";
-import { ArrowLeft, Store, Clock, Truck, Timer, MapPin, Upload, Loader2, X, ImageIcon, FileText, Link2, ShieldCheck } from "lucide-react";
+import { getIntegracaoStatus, iniciarConexaoMercadoPago, desconectarMercadoPago } from "@/lib/pagamentos.functions";
+import { ArrowLeft, Store, Clock, Truck, Timer, MapPin, Upload, Loader2, X, ImageIcon, FileText, Link2, ShieldCheck, CreditCard, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { maskCnpj, maskCep, validateCnpj, resizeImageToSquareDataUrl } from "@/lib/br-utils";
@@ -362,6 +363,13 @@ function ConfigPage() {
           </div>
         </Card>
 
+        <MercadoPagoCard />
+
+
+
+
+
+
 
 
 
@@ -397,6 +405,91 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 // suppress unused import warning
 void FileText;
+
+function MercadoPagoCard() {
+  const qc = useQueryClient();
+  const { data, isLoading } = useQuery({
+    queryKey: ["integracao-mp"],
+    queryFn: () => getIntegracaoStatus(),
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const sp = new URLSearchParams(window.location.search);
+    const mp = sp.get("mp");
+    if (mp === "conectado") {
+      toast.success("Mercado Pago conectado com sucesso 🎉");
+      qc.invalidateQueries({ queryKey: ["integracao-mp"] });
+    } else if (mp === "erro") {
+      toast.error("Não foi possível conectar ao Mercado Pago. Tente novamente.");
+    }
+    if (mp) {
+      sp.delete("mp");
+      const qs = sp.toString();
+      window.history.replaceState({}, "", window.location.pathname + (qs ? `?${qs}` : ""));
+    }
+  }, [qc]);
+
+  const conectar = useMutation({
+    mutationFn: () => iniciarConexaoMercadoPago(),
+    onSuccess: (r: { url: string }) => {
+      if (r?.url) window.location.href = r.url;
+    },
+    onError: (e: Error) => toast.error(e.message || "Falha ao iniciar conexão"),
+  });
+
+  const desconectar = useMutation({
+    mutationFn: () => desconectarMercadoPago(),
+    onSuccess: () => {
+      toast.success("Mercado Pago desconectado");
+      qc.invalidateQueries({ queryKey: ["integracao-mp"] });
+    },
+    onError: (e: Error) => toast.error(e.message || "Falha ao desconectar"),
+  });
+
+  const conectado = !!data?.conectado;
+
+  return (
+    <Card icon={CreditCard} title="Pagamentos — PIX automático">
+      <p className="-mt-1 text-xs text-muted-foreground">
+        Conecte sua conta Mercado Pago para receber pagamentos PIX direto na sua conta. Sem repasses intermediários.
+      </p>
+      {isLoading ? (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" /> Verificando conexão…
+        </div>
+      ) : conectado ? (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">
+            <CheckCircle2 className="h-4 w-4" />
+            Conectado
+            {data?.mp_user_id && <span className="ml-1 font-mono opacity-70">#{data.mp_user_id}</span>}
+          </div>
+          <button
+            type="button"
+            onClick={() => desconectar.mutate()}
+            disabled={desconectar.isPending}
+            className="inline-flex items-center gap-2 rounded-full bg-red-500/10 px-4 py-2 text-xs font-black text-red-600 hover:bg-red-500/20 disabled:opacity-50"
+          >
+            {desconectar.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <X className="h-3.5 w-3.5" />}
+            Desconectar
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => conectar.mutate()}
+          disabled={conectar.isPending}
+          className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-black text-primary-foreground shadow-soft hover:opacity-90 disabled:opacity-50"
+        >
+          {conectar.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CreditCard className="h-3.5 w-3.5" />}
+          Conectar Mercado Pago
+        </button>
+      )}
+    </Card>
+  );
+}
+
 
 // ============ Horários por dia da semana ============
 const DIAS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
