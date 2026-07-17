@@ -406,9 +406,31 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 // suppress unused import warning
 void FileText;
 
+const MP_ERROR_MESSAGES: Record<string, string> = {
+  missing_code_or_state: "O Mercado Pago não retornou os dados esperados. Tente novamente.",
+  config_missing: "As credenciais do Mercado Pago não estão configuradas. Contate o suporte.",
+  state_invalid: "Sessão de autorização inválida. Inicie a conexão novamente.",
+  state_expired: "O tempo para autorizar expirou. Tente conectar de novo.",
+  no_access_token: "O Mercado Pago não devolveu um token de acesso.",
+  save_failed: "Não foi possível salvar a integração. Tente novamente.",
+  unexpected: "Ocorreu um erro inesperado. Tente novamente em instantes.",
+  access_denied: "Você recusou a autorização no Mercado Pago.",
+};
+
+function mpErrorMessage(reason: string | null): string {
+  if (!reason) return "Não foi possível conectar ao Mercado Pago.";
+  if (MP_ERROR_MESSAGES[reason]) return MP_ERROR_MESSAGES[reason];
+  if (reason.startsWith("token_exchange_")) {
+    return `A troca de tokens falhou (código ${reason.replace("token_exchange_", "")}). Verifique as credenciais e tente novamente.`;
+  }
+  return `Falha ao conectar: ${reason}`;
+}
+
 function MercadoPagoCard() {
   const qc = useQueryClient();
-  const { data, isLoading } = useQuery({
+  const [erroPersistente, setErroPersistente] = useState<string | null>(null);
+
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["integracao-mp"],
     queryFn: () => getIntegracaoStatus(),
   });
@@ -417,14 +439,19 @@ function MercadoPagoCard() {
     if (typeof window === "undefined") return;
     const sp = new URLSearchParams(window.location.search);
     const mp = sp.get("mp");
+    const reason = sp.get("reason");
     if (mp === "conectado") {
       toast.success("Mercado Pago conectado com sucesso 🎉");
+      setErroPersistente(null);
       qc.invalidateQueries({ queryKey: ["integracao-mp"] });
     } else if (mp === "erro") {
-      toast.error("Não foi possível conectar ao Mercado Pago. Tente novamente.");
+      const msg = mpErrorMessage(reason);
+      toast.error(msg);
+      setErroPersistente(msg);
     }
-    if (mp) {
+    if (mp || reason) {
       sp.delete("mp");
+      sp.delete("reason");
       const qs = sp.toString();
       window.history.replaceState({}, "", window.location.pathname + (qs ? `?${qs}` : ""));
     }
@@ -433,58 +460,114 @@ function MercadoPagoCard() {
   const conectar = useMutation({
     mutationFn: () => iniciarConexaoMercadoPago(),
     onSuccess: (r: { url: string }) => {
+      setErroPersistente(null);
       if (r?.url) window.location.href = r.url;
     },
-    onError: (e: Error) => toast.error(e.message || "Falha ao iniciar conexão"),
+    onError: (e: Error) => {
+      const msg = e.message || "Falha ao iniciar conexão";
+      toast.error(msg);
+      setErroPersistente(msg);
+    },
   });
 
   const desconectar = useMutation({
     mutationFn: () => desconectarMercadoPago(),
     onSuccess: () => {
       toast.success("Mercado Pago desconectado");
+      setErroPersistente(null);
       qc.invalidateQueries({ queryKey: ["integracao-mp"] });
     },
     onError: (e: Error) => toast.error(e.message || "Falha ao desconectar"),
   });
 
   const conectado = !!data?.conectado;
+  const conectadoEm = data?.conectado_em
+    ? new Date(data.conectado_em).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })
+    : null;
 
   return (
     <Card icon={CreditCard} title="Pagamentos — PIX automático">
       <p className="-mt-1 text-xs text-muted-foreground">
         Conecte sua conta Mercado Pago para receber pagamentos PIX direto na sua conta. Sem repasses intermediários.
       </p>
+
+      {/* Indicador de status principal */}
       {isLoading ? (
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="flex items-center gap-2 rounded-xl bg-muted/50 px-3 py-2 text-xs font-semibold text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" /> Verificando conexão…
         </div>
-      ) : conectado ? (
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">
-            <CheckCircle2 className="h-4 w-4" />
-            Conectado
-            {data?.mp_user_id && <span className="ml-1 font-mono opacity-70">#{data.mp_user_id}</span>}
+      ) : isError ? (
+        <div className="flex items-start justify-between gap-2 rounded-xl bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 dark:bg-red-950/30 dark:text-red-300">
+          <div className="flex items-start gap-2">
+            <X className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>Não foi possível verificar o status: {error instanceof Error ? error.message : "erro desconhecido"}</span>
           </div>
+          <button type="button" onClick={() => refetch()} className="shrink-0 underline">Tentar</button>
+        </div>
+      ) : conectado ? (
+        <div className="space-y-1 rounded-xl bg-emerald-50 px-3 py-2 dark:bg-emerald-950/30">
+          <div className="flex items-center gap-2 text-xs font-black text-emerald-700 dark:text-emerald-300">
+            <CheckCircle2 className="h-4 w-4" />
+            <span>Conta conectada</span>
+            {data?.mp_user_id && <span className="ml-1 rounded-md bg-emerald-100 px-1.5 py-0.5 font-mono text-[10px] text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200">ID {data.mp_user_id}</span>}
+          </div>
+          {conectadoEm && (
+            <div className="text-[11px] font-medium text-emerald-700/80 dark:text-emerald-300/80">
+              Conectado em {conectadoEm}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="flex items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800 dark:bg-amber-950/30 dark:text-amber-300">
+          <span className="h-2 w-2 rounded-full bg-amber-500" />
+          Desconectado — pagamentos PIX automáticos indisponíveis
+        </div>
+      )}
+
+      {/* Banner de erro persistente (última tentativa) */}
+      {erroPersistente && !conectado && !isLoading && (
+        <div className="flex items-start justify-between gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300">
+          <div className="flex items-start gap-2">
+            <X className="mt-0.5 h-4 w-4 shrink-0" />
+            <div>
+              <div className="font-black">Falha na última tentativa</div>
+              <div className="opacity-90">{erroPersistente}</div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setErroPersistente(null)}
+            className="shrink-0 rounded-md p-1 hover:bg-red-100 dark:hover:bg-red-900/40"
+            aria-label="Fechar aviso"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* Ações */}
+      {!isLoading && (
+        conectado ? (
           <button
             type="button"
             onClick={() => desconectar.mutate()}
             disabled={desconectar.isPending}
-            className="inline-flex items-center gap-2 rounded-full bg-red-500/10 px-4 py-2 text-xs font-black text-red-600 hover:bg-red-500/20 disabled:opacity-50"
+            className="inline-flex items-center gap-2 self-start rounded-full bg-red-500/10 px-4 py-2 text-xs font-black text-red-600 hover:bg-red-500/20 disabled:opacity-50"
           >
             {desconectar.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <X className="h-3.5 w-3.5" />}
             Desconectar
           </button>
-        </div>
-      ) : (
-        <button
-          type="button"
-          onClick={() => conectar.mutate()}
-          disabled={conectar.isPending}
-          className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-black text-primary-foreground shadow-soft hover:opacity-90 disabled:opacity-50"
-        >
-          {conectar.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CreditCard className="h-3.5 w-3.5" />}
-          Conectar Mercado Pago
-        </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => conectar.mutate()}
+            disabled={conectar.isPending}
+            className="inline-flex items-center gap-2 self-start rounded-full bg-primary px-4 py-2 text-xs font-black text-primary-foreground shadow-soft hover:opacity-90 disabled:opacity-50"
+          >
+            {conectar.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CreditCard className="h-3.5 w-3.5" />}
+            {erroPersistente ? "Tentar conectar novamente" : "Conectar Mercado Pago"}
+          </button>
+        )
       )}
     </Card>
   );
