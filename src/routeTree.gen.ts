@@ -28,6 +28,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as PedidoIdStatusRouteImport } from './routes/pedido.$id.status'
 import { Route as AuthenticatedPedidosIdRouteImport } from './routes/_authenticated/pedidos.$id'
 import { Route as ApiPublicWebhookWhatsappRouteImport } from './routes/api/public/webhook/whatsapp'
+import { Route as ApiPublicIntegracoesMercadopagoCallbackRouteImport } from './routes/api/public/integracoes/mercadopago/callback'
 
 const PlanoRoute = PlanoRouteImport.update({
   id: '/plano',
@@ -126,6 +127,12 @@ const ApiPublicWebhookWhatsappRoute =
     path: '/api/public/webhook/whatsapp',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicIntegracoesMercadopagoCallbackRoute =
+  ApiPublicIntegracoesMercadopagoCallbackRouteImport.update({
+    id: '/api/public/integracoes/mercadopago/callback',
+    path: '/api/public/integracoes/mercadopago/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -146,6 +153,7 @@ export interface FileRoutesByFullPath {
   '/pedidos/$id': typeof AuthenticatedPedidosIdRoute
   '/pedido/$id/status': typeof PedidoIdStatusRoute
   '/api/public/webhook/whatsapp': typeof ApiPublicWebhookWhatsappRoute
+  '/api/public/integracoes/mercadopago/callback': typeof ApiPublicIntegracoesMercadopagoCallbackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -166,6 +174,7 @@ export interface FileRoutesByTo {
   '/pedidos/$id': typeof AuthenticatedPedidosIdRoute
   '/pedido/$id/status': typeof PedidoIdStatusRoute
   '/api/public/webhook/whatsapp': typeof ApiPublicWebhookWhatsappRoute
+  '/api/public/integracoes/mercadopago/callback': typeof ApiPublicIntegracoesMercadopagoCallbackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -188,6 +197,7 @@ export interface FileRoutesById {
   '/_authenticated/pedidos/$id': typeof AuthenticatedPedidosIdRoute
   '/pedido/$id/status': typeof PedidoIdStatusRoute
   '/api/public/webhook/whatsapp': typeof ApiPublicWebhookWhatsappRoute
+  '/api/public/integracoes/mercadopago/callback': typeof ApiPublicIntegracoesMercadopagoCallbackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -210,6 +220,7 @@ export interface FileRouteTypes {
     | '/pedidos/$id'
     | '/pedido/$id/status'
     | '/api/public/webhook/whatsapp'
+    | '/api/public/integracoes/mercadopago/callback'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -230,6 +241,7 @@ export interface FileRouteTypes {
     | '/pedidos/$id'
     | '/pedido/$id/status'
     | '/api/public/webhook/whatsapp'
+    | '/api/public/integracoes/mercadopago/callback'
   id:
     | '__root__'
     | '/'
@@ -251,6 +263,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pedidos/$id'
     | '/pedido/$id/status'
     | '/api/public/webhook/whatsapp'
+    | '/api/public/integracoes/mercadopago/callback'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -261,6 +274,7 @@ export interface RootRouteChildren {
   LojaSlugRoute: typeof LojaSlugRoute
   PedidoIdRoute: typeof PedidoIdRouteWithChildren
   ApiPublicWebhookWhatsappRoute: typeof ApiPublicWebhookWhatsappRoute
+  ApiPublicIntegracoesMercadopagoCallbackRoute: typeof ApiPublicIntegracoesMercadopagoCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -398,6 +412,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWebhookWhatsappRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/integracoes/mercadopago/callback': {
+      id: '/api/public/integracoes/mercadopago/callback'
+      path: '/api/public/integracoes/mercadopago/callback'
+      fullPath: '/api/public/integracoes/mercadopago/callback'
+      preLoaderRoute: typeof ApiPublicIntegracoesMercadopagoCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -461,6 +482,8 @@ const rootRouteChildren: RootRouteChildren = {
   LojaSlugRoute: LojaSlugRoute,
   PedidoIdRoute: PedidoIdRouteWithChildren,
   ApiPublicWebhookWhatsappRoute: ApiPublicWebhookWhatsappRoute,
+  ApiPublicIntegracoesMercadopagoCallbackRoute:
+    ApiPublicIntegracoesMercadopagoCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
