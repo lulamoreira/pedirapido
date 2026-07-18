@@ -178,6 +178,13 @@ function PedidoTrack() {
         {p.codigo_pix && p.status === "pendente" && (
           <div className="rounded-2xl bg-white p-4 shadow-soft space-y-2">
             <p className="text-xs font-black uppercase tracking-wider text-primary">Pague com PIX</p>
+            {p.pix_qr_base64 && (
+              <img
+                src={`data:image/png;base64,${p.pix_qr_base64}`}
+                alt="QR Code PIX"
+                className="mx-auto h-44 w-44 rounded-xl"
+              />
+            )}
             <p className="text-[10px] break-all font-mono bg-secondary p-2 rounded-xl">{p.codigo_pix}</p>
             <button
               onClick={() => { navigator.clipboard.writeText(String(p.codigo_pix)); toast.success("Código copiado"); }}
