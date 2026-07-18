@@ -261,41 +261,10 @@ export const checkoutLojaPublica = createServerFn({ method: "POST" })
     const total = subtotal + taxa;
 
     const isPreOrder = !!data.is_pre_order;
-    const isPix = data.forma_pagamento === "pix";
-    // Pré-pedidos ficam sempre pendentes até o lojista abrir
-    const status = isPreOrder ? "pendente" : (isPix ? "pendente" : "preparo");
-
-    let codigo_pix: string | null = null;
-    let mp_payment_id: string | null = null;
-    let pix_qr_base64: string | null = null;
-
-    if (isPix) {
-      try {
-        const { getValidMpToken, criarPixMercadoPago } = await import("@/lib/mp.server");
-        const token = await getValidMpToken(dist.id);
-        if (token) {
-          const emailPagador = `cliente-${digits}@pedirapido.com.br`;
-          const pix = await criarPixMercadoPago({
-            token,
-            valor: total,
-            descricao: `Pedido - ${dist.nome}`,
-            payerEmail: emailPagador,
-            payerNome: nomeNorm ?? "Cliente",
-          });
-          if (pix) {
-            codigo_pix = pix.copia_e_cola;
-            mp_payment_id = pix.payment_id;
-            pix_qr_base64 = pix.qr_base64;
-          }
-        }
-      } catch (err) {
-        console.error("[checkout] Mercado Pago indisponível, usando fallback estático");
-        void err;
-      }
-      if (!codigo_pix) {
-        codigo_pix = generatePixCode({ chave: (dist as any).email, nome: dist.nome, cidade: "SAO PAULO", valor: total });
-      }
-    }
+    const isOnline = data.forma_pagamento === "online";
+    // Pré-pedidos ficam sempre pendentes até o lojista abrir.
+    // Pagamento online também fica pendente até o webhook confirmar.
+    const status = isPreOrder ? "pendente" : (isOnline ? "pendente" : "preparo");
 
     const obsParts = [isPreOrder ? `[Pré-pedido]` : `[Cardápio Web]`];
     if (data.observacoes) obsParts.push(data.observacoes);
@@ -307,18 +276,15 @@ export const checkoutLojaPublica = createServerFn({ method: "POST" })
       cliente_id: clienteId!,
       subtotal, taxa_entrega: taxa, total,
       status: status as any,
-      codigo_pix,
-      mp_payment_id,
-      pix_qr_base64,
+      codigo_pix: null,
+      mp_payment_id: null,
+      pix_qr_base64: null,
       observacoes: obsParts.join(" | "),
-      pago_at: (isPix || isPreOrder) ? null : new Date().toISOString(),
+      pago_at: (isOnline || isPreOrder) ? null : new Date().toISOString(),
       forma_pagamento: data.forma_pagamento,
       is_pre_order: isPreOrder,
-    } as any).select("id,total,status,codigo_pix,pix_qr_base64").single();
+    } as any).select("id,total,status").single();
     if (ePed) throw ePed;
-
-
-
 
     const { error: eIt } = await supabaseAdmin.from("pedido_itens")
       .insert(itensPayload.map(it => ({ ...it, pedido_id: pedido.id })));
@@ -329,6 +295,28 @@ export const checkoutLojaPublica = createServerFn({ method: "POST" })
       const p: any = map.get(it.produto_id);
       const novoEstoque = Math.max(0, Number(p.estoque) - it.quantidade);
       await supabaseAdmin.from("produtos").update({ estoque: novoEstoque }).eq("id", it.produto_id);
+    }
+
+    // Pagamento online → Mercado Pago Checkout Pro
+    let checkout_url: string | null = null;
+    if (isOnline) {
+      const { getValidMpToken, criarPreferenceMercadoPago } = await import("@/lib/mp.server");
+      const token = await getValidMpToken(dist.id);
+      if (!token) throw new Error("Pagamento online indisponível para esta loja.");
+      const pref = await criarPreferenceMercadoPago({
+        token,
+        pedidoId: pedido.id,
+        itens: itensPayload.map((it) => {
+          const p: any = map.get(it.produto_id);
+          return { title: String(p?.nome ?? "Item"), quantity: it.quantidade, unit_price: Number(it.preco_unit) };
+        }),
+        taxaEntrega: taxa,
+        payerNome: nomeNorm ?? "Cliente",
+        payerEmail: `cliente-${digits}@pedirapido.com.br`,
+        descricaoLoja: dist.nome,
+      });
+      if (!pref) throw new Error("Não foi possível iniciar o pagamento. Tente novamente.");
+      checkout_url = pref.init_point;
     }
 
     // Notifica o WhatsApp do lojista quando é pré-pedido (loja fechada)
@@ -358,7 +346,8 @@ export const checkoutLojaPublica = createServerFn({ method: "POST" })
       }
     }
 
-    return { id: pedido.id, status, total, codigo_pix, pix_qr_base64 };
+    return { id: pedido.id, status, total, checkout_url };
+  });
   });
 
 
