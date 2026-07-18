@@ -257,9 +257,38 @@ export const checkoutLojaPublica = createServerFn({ method: "POST" })
     const isPix = data.forma_pagamento === "pix";
     // Pré-pedidos ficam sempre pendentes até o lojista abrir
     const status = isPreOrder ? "pendente" : (isPix ? "pendente" : "preparo");
-    const codigo_pix = isPix
-      ? generatePixCode({ chave: (dist as any).email, nome: dist.nome, cidade: "SAO PAULO", valor: total })
-      : null;
+
+    let codigo_pix: string | null = null;
+    let mp_payment_id: string | null = null;
+    let pix_qr_base64: string | null = null;
+
+    if (isPix) {
+      try {
+        const { getValidMpToken, criarPixMercadoPago } = await import("@/lib/pagamentos.functions");
+        const token = await getValidMpToken(dist.id);
+        if (token) {
+          const emailPagador = `cliente-${digits}@pedirapido.com.br`;
+          const pix = await criarPixMercadoPago({
+            token,
+            valor: total,
+            descricao: `Pedido - ${dist.nome}`,
+            payerEmail: emailPagador,
+            payerNome: nomeNorm ?? "Cliente",
+          });
+          if (pix) {
+            codigo_pix = pix.copia_e_cola;
+            mp_payment_id = pix.payment_id;
+            pix_qr_base64 = pix.qr_base64;
+          }
+        }
+      } catch (err) {
+        console.error("[checkout] Mercado Pago indisponível, usando fallback estático");
+        void err;
+      }
+      if (!codigo_pix) {
+        codigo_pix = generatePixCode({ chave: (dist as any).email, nome: dist.nome, cidade: "SAO PAULO", valor: total });
+      }
+    }
 
     const obsParts = [isPreOrder ? `[Pré-pedido]` : `[Cardápio Web]`];
     if (data.observacoes) obsParts.push(data.observacoes);
