@@ -362,7 +362,7 @@ export const getPedidoPublico = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: pedido, error } = await supabaseAdmin
       .from("pedidos")
-      .select("id,status,total,subtotal,taxa_entrega,forma_pagamento,codigo_pix,created_at,pago_at,entregue_at,distribuidora_id,distribuidora:distribuidoras(nome,nome_fantasia,razao_social,cnpj,tempo_estimado_min,telefone,logo_url),itens:pedido_itens(quantidade,preco_unit,subtotal,produto:produtos(nome,volume_valor,volume_unidade,marca,tipo_embalagem)),entregador:entregadores(nome,veiculo_modelo,veiculo_placa)")
+      .select("id,status,total,subtotal,taxa_entrega,forma_pagamento,codigo_pix,pix_qr_base64,created_at,pago_at,entregue_at,distribuidora_id,distribuidora:distribuidoras(nome,nome_fantasia,razao_social,cnpj,tempo_estimado_min,telefone,logo_url),itens:pedido_itens(quantidade,preco_unit,subtotal,produto:produtos(nome,volume_valor,volume_unidade,marca,tipo_embalagem)),entregador:entregadores(nome,veiculo_modelo,veiculo_placa)")
       .eq("id", data.id)
       .maybeSingle();
     if (error) throw error;
