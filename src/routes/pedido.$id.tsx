@@ -75,6 +75,7 @@ function PedidoTrack() {
     distribuidora?: { nome: string; tempo_estimado_min?: number; telefone?: string | null; logo_url?: string | null };
     entregador?: { nome: string; veiculo_modelo: string | null; veiculo_placa: string | null } | null;
     codigo_pix?: string | null;
+    pix_qr_base64?: string | null;
     itens?: Array<{ quantidade: number; subtotal: number; produto?: { nome: string } }>;
   };
   const currentIdx = STATUS_INDEX[p.status] ?? 0;
