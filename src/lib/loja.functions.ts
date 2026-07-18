@@ -301,12 +301,16 @@ export const checkoutLojaPublica = createServerFn({ method: "POST" })
       subtotal, taxa_entrega: taxa, total,
       status: status as any,
       codigo_pix,
+      mp_payment_id,
+      pix_qr_base64,
       observacoes: obsParts.join(" | "),
       pago_at: (isPix || isPreOrder) ? null : new Date().toISOString(),
       forma_pagamento: data.forma_pagamento,
       is_pre_order: isPreOrder,
-    } as any).select("id,total,status,codigo_pix").single();
+    } as any).select("id,total,status,codigo_pix,pix_qr_base64").single();
     if (ePed) throw ePed;
+
+
 
 
     const { error: eIt } = await supabaseAdmin.from("pedido_itens")
