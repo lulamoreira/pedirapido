@@ -440,10 +440,10 @@ function CheckoutModal(p: CheckoutProps) {
   const [complemento, setComplemento] = useState("");
   const [referencia, setReferencia] = useState("");
 
-  const [forma, setForma] = useState<"pix" | "cartao" | "dinheiro">("pix");
+  const [forma, setForma] = useState<"online" | "cartao" | "dinheiro">(p.aceitaOnline ? "online" : "dinheiro");
   const [troco, setTroco] = useState<string>("");
   const [loading, setLoading] = useState(false);
-  const [resultado, setResultado] = useState<{ id: string; codigo_pix: string | null; pix_qr_base64: string | null; total: number; status: string } | null>(null);
+  const [resultado, setResultado] = useState<{ id: string; total: number; status: string; checkout_url: string | null } | null>(null);
   const [buscandoCli, setBuscandoCli] = useState(false);
   const [cepLoading, setCepLoading] = useState(false);
 
