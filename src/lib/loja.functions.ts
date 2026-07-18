@@ -169,7 +169,7 @@ export const checkoutLojaPublica = createServerFn({ method: "POST" })
       produto_id: z.string().uuid(),
       quantidade: z.number().int().min(1).max(999),
     })).min(1).max(50),
-    forma_pagamento: z.enum(["pix", "cartao", "dinheiro"]),
+    forma_pagamento: z.enum(["online", "cartao", "dinheiro"]),
     troco_para: z.number().positive().max(10000).nullish(),
     observacoes: z.string().max(300).optional(),
     is_pre_order: z.boolean().optional(),
