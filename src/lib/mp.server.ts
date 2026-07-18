@@ -58,15 +58,33 @@ export async function getValidMpToken(distribuidoraId: string): Promise<string |
   }
 }
 
-export async function criarPixMercadoPago(args: {
+export async function criarPreferenceMercadoPago(args: {
   token: string;
-  valor: number;
-  descricao: string;
-  payerEmail: string;
+  pedidoId: string;
+  itens: Array<{ title: string; quantity: number; unit_price: number }>;
+  taxaEntrega: number;
   payerNome: string;
-}): Promise<{ payment_id: string; copia_e_cola: string; qr_base64: string | null } | null> {
+  payerEmail: string;
+  descricaoLoja: string;
+}): Promise<{ init_point: string; preference_id: string } | null> {
+  const BASE = "https://pedirapido.lovable.app";
   try {
-    const resp = await fetch("https://api.mercadopago.com/v1/payments", {
+    const items = args.itens.map((it) => ({
+      title: it.title,
+      quantity: it.quantity,
+      unit_price: Number(it.unit_price.toFixed(2)),
+      currency_id: "BRL",
+    }));
+    if (args.taxaEntrega > 0) {
+      items.push({
+        title: "Taxa de entrega",
+        quantity: 1,
+        unit_price: Number(args.taxaEntrega.toFixed(2)),
+        currency_id: "BRL",
+      });
+    }
+
+    const resp = await fetch("https://api.mercadopago.com/checkout/preferences", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${args.token}`,
@@ -74,23 +92,32 @@ export async function criarPixMercadoPago(args: {
         "X-Idempotency-Key": crypto.randomUUID(),
       },
       body: JSON.stringify({
-        transaction_amount: Number(args.valor.toFixed(2)),
-        description: args.descricao,
-        payment_method_id: "pix",
-        payer: { email: args.payerEmail, first_name: args.payerNome },
+        items,
+        external_reference: args.pedidoId,
+        payer: { name: args.payerNome, email: args.payerEmail },
+        back_urls: {
+          success: `${BASE}/pedido/${args.pedidoId}`,
+          pending: `${BASE}/pedido/${args.pedidoId}`,
+          failure: `${BASE}/pedido/${args.pedidoId}`,
+        },
+        auto_return: "approved",
+        notification_url: `${BASE}/api/public/webhook/mercadopago`,
+        statement_descriptor: args.descricaoLoja.slice(0, 22),
       }),
     });
     if (!resp.ok) {
-      console.error("[MP] criar pix falhou:", resp.status);
+      const body = await resp.text().catch(() => "");
+      console.error("[MP] criar preference falhou:", resp.status, body);
       return null;
     }
     const j = (await resp.json()) as any;
-    const qr = j?.point_of_interaction?.transaction_data?.qr_code;
-    const qrB64 = j?.point_of_interaction?.transaction_data?.qr_code_base64 ?? null;
-    if (!j?.id || !qr) return null;
-    return { payment_id: String(j.id), copia_e_cola: String(qr), qr_base64: qrB64 ? String(qrB64) : null };
+    if (!j?.id || !j?.init_point) {
+      console.error("[MP] preference sem init_point/id");
+      return null;
+    }
+    return { init_point: String(j.init_point), preference_id: String(j.id) };
   } catch (err) {
-    console.error("[MP] criarPixMercadoPago erro");
+    console.error("[MP] criarPreferenceMercadoPago erro");
     void err;
     return null;
   }
