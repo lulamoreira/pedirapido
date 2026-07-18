@@ -148,7 +148,7 @@ export const checkoutLojaPublica = createServerFn({ method: "POST" })
     distribuidora_id: string;
     cliente: { nome: string; telefone: string; endereco: string; cep?: string; complemento?: string };
     itens: Array<{ produto_id: string; quantidade: number }>;
-    forma_pagamento: "pix" | "cartao" | "dinheiro";
+    forma_pagamento: "online" | "cartao" | "dinheiro";
     troco_para?: number | null;
     observacoes?: string;
     is_pre_order?: boolean;
