@@ -264,7 +264,7 @@ export const checkoutLojaPublica = createServerFn({ method: "POST" })
 
     if (isPix) {
       try {
-        const { getValidMpToken, criarPixMercadoPago } = await import("@/lib/pagamentos.functions");
+        const { getValidMpToken, criarPixMercadoPago } = await import("@/lib/mp.server");
         const token = await getValidMpToken(dist.id);
         if (token) {
           const emailPagador = `cliente-${digits}@pedirapido.com.br`;
