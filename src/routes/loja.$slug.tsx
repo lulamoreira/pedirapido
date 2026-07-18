@@ -802,22 +802,33 @@ function CheckoutModal(p: CheckoutProps) {
             <div className="space-y-3">
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Forma de pagamento</p>
               {([
-                { v: "pix", l: "PIX", d: "Pague na hora, aprovação imediata" },
-                { v: "cartao", l: "Cartão na entrega", d: "Débito ou crédito com o entregador" },
-                { v: "dinheiro", l: "Dinheiro", d: "Pague em espécie ao entregador" },
-              ] as const).map(op => (
-                <button
-                  key={op.v}
-                  onClick={() => setForma(op.v)}
-                  className={cn(
-                    "w-full rounded-2xl border-2 bg-white p-4 text-left transition",
-                    forma === op.v ? "border-primary shadow-soft" : "border-transparent"
-                  )}
-                >
-                  <p className="text-sm font-black">{op.l}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{op.d}</p>
-                </button>
-              ))}
+                ...(p.aceitaOnline ? [{ v: "online" as const, l: "Pagar agora (PIX, crédito ou débito)", d: "Pagamento seguro pelo Mercado Pago", icon: CreditCard, recommended: true }] : []),
+                { v: "cartao" as const, l: "Cartão na entrega (maquininha)", d: "Débito ou crédito com o entregador", icon: Wallet, recommended: false },
+                { v: "dinheiro" as const, l: "Dinheiro na entrega", d: "Pague em espécie ao entregador", icon: Banknote, recommended: false },
+              ]).map(op => {
+                const Icon = op.icon;
+                return (
+                  <button
+                    key={op.v}
+                    onClick={() => setForma(op.v)}
+                    className={cn(
+                      "w-full rounded-2xl border-2 bg-white p-4 text-left transition flex items-center gap-3",
+                      forma === op.v ? "border-primary shadow-soft" : "border-transparent"
+                    )}
+                  >
+                    <div className={cn("grid h-10 w-10 place-items-center rounded-xl shrink-0", op.recommended ? "gradient-primary text-primary-foreground" : "bg-secondary text-foreground")}>
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-black flex items-center gap-2">
+                        {op.l}
+                        {op.recommended && <span className="text-[10px] uppercase font-black text-primary bg-primary/10 rounded-full px-2 py-0.5">Recomendado</span>}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{op.d}</p>
+                    </div>
+                  </button>
+                );
+              })}
               {forma === "dinheiro" && (
                 <div>
                   <Label className="text-xs font-bold">Precisa de troco para quanto?</Label>
@@ -836,31 +847,9 @@ function CheckoutModal(p: CheckoutProps) {
                 <CheckCircle2 className="h-8 w-8 text-emerald-600" />
               </div>
               <div>
-                <p className="text-lg font-black">Pedido enviado com sucesso! 🎉</p>
+                <p className="text-lg font-black">Pedido confirmado! 🎉</p>
                 <p className="text-xs text-muted-foreground mt-1">Você pode acompanhar o status abaixo</p>
               </div>
-              {resultado.codigo_pix && (
-                <div className="rounded-2xl bg-white p-4 shadow-soft text-left space-y-2">
-                  <p className="text-xs font-black uppercase tracking-wider text-primary">Pague com PIX</p>
-                  {resultado.pix_qr_base64 && (
-                    <img
-                      src={`data:image/png;base64,${resultado.pix_qr_base64}`}
-                      alt="QR Code PIX"
-                      className="mx-auto h-44 w-44 rounded-xl"
-                    />
-                  )}
-                  <p className="text-[10px] break-all font-mono bg-secondary p-2 rounded-xl">{resultado.codigo_pix}</p>
-                  <Button
-                    onClick={() => {
-                      navigator.clipboard.writeText(resultado.codigo_pix!);
-                      toast.success("Código PIX copiado");
-                    }}
-                    className="w-full rounded-2xl h-11 gradient-primary font-black"
-                  >
-                    <Copy className="h-4 w-4 mr-2" /> Copiar código PIX
-                  </Button>
-                </div>
-              )}
               <Link
                 to="/pedido/$id"
                 params={{ id: resultado.id }}
