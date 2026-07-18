@@ -634,7 +634,7 @@ export type Database = {
     Enums: {
       app_role: "admin_master" | "distribuidora" | "entregador"
       entregador_status: "disponivel" | "em_entrega" | "inativo"
-      forma_pagamento: "pix" | "cartao" | "dinheiro"
+      forma_pagamento: "pix" | "cartao" | "dinheiro" | "online"
       pedido_status:
         | "pendente"
         | "preparo"
@@ -773,7 +773,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin_master", "distribuidora", "entregador"],
       entregador_status: ["disponivel", "em_entrega", "inativo"],
-      forma_pagamento: ["pix", "cartao", "dinheiro"],
+      forma_pagamento: ["pix", "cartao", "dinheiro", "online"],
       pedido_status: [
         "pendente",
         "preparo",

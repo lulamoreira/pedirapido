@@ -2,11 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect } from "react";
-import { CheckCircle2, Clock, Truck, Package, Copy, Loader2, Droplet, MessageCircle, ChefHat } from "lucide-react";
+import { CheckCircle2, Truck, Package, Loader2, Droplet, MessageCircle, ChefHat } from "lucide-react";
 import { getPedidoPublico } from "@/lib/loja.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 
 export const Route = createFileRoute("/pedido/$id")({
   head: () => ({
@@ -76,6 +75,7 @@ function PedidoTrack() {
     entregador?: { nome: string; veiculo_modelo: string | null; veiculo_placa: string | null } | null;
     codigo_pix?: string | null;
     pix_qr_base64?: string | null;
+    forma_pagamento?: string | null;
     itens?: Array<{ quantidade: number; subtotal: number; produto?: { nome: string } }>;
   };
   const currentIdx = STATUS_INDEX[p.status] ?? 0;
@@ -175,25 +175,12 @@ function PedidoTrack() {
           </div>
         )}
 
-        {p.codigo_pix && p.status === "pendente" && (
-          <div className="rounded-2xl bg-white p-4 shadow-soft space-y-2">
-            <p className="text-xs font-black uppercase tracking-wider text-primary">Pague com PIX</p>
-            {p.pix_qr_base64 && (
-              <img
-                src={`data:image/png;base64,${p.pix_qr_base64}`}
-                alt="QR Code PIX"
-                className="mx-auto h-44 w-44 rounded-xl"
-              />
-            )}
-            <p className="text-[10px] break-all font-mono bg-secondary p-2 rounded-xl">{p.codigo_pix}</p>
-            <button
-              onClick={() => { navigator.clipboard.writeText(String(p.codigo_pix)); toast.success("Código copiado"); }}
-              className="w-full rounded-2xl h-11 gradient-primary text-primary-foreground font-black flex items-center justify-center gap-2"
-            >
-              <Copy className="h-4 w-4" /> Copiar código
-            </button>
+        {p.forma_pagamento === "online" && p.status === "pendente" && (
+          <div className="rounded-2xl bg-amber-50 border-2 border-amber-200 p-4 text-sm text-amber-900 font-bold text-center">
+            Aguardando confirmação do pagamento…
           </div>
         )}
+
 
         <div className="rounded-2xl bg-white p-4 shadow-soft">
           <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Itens</p>
