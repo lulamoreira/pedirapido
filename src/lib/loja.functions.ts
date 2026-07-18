@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { generatePixCode } from "@/lib/pix";
 import { normalizeProperName, normalizeSentence } from "@/lib/text-normalize";
 
 /** Hora atual no fuso America/Sao_Paulo. Retorna dia da semana (0=Dom..6=Sáb)
