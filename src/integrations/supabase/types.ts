@@ -457,8 +457,10 @@ export type Database = {
           forma_pagamento: Database["public"]["Enums"]["forma_pagamento"]
           id: string
           is_pre_order: boolean
+          mp_payment_id: string | null
           observacoes: string | null
           pago_at: string | null
+          pix_qr_base64: string | null
           status: Database["public"]["Enums"]["pedido_status"]
           subtotal: number
           taxa_entrega: number
@@ -474,8 +476,10 @@ export type Database = {
           forma_pagamento?: Database["public"]["Enums"]["forma_pagamento"]
           id?: string
           is_pre_order?: boolean
+          mp_payment_id?: string | null
           observacoes?: string | null
           pago_at?: string | null
+          pix_qr_base64?: string | null
           status?: Database["public"]["Enums"]["pedido_status"]
           subtotal?: number
           taxa_entrega?: number
@@ -491,8 +495,10 @@ export type Database = {
           forma_pagamento?: Database["public"]["Enums"]["forma_pagamento"]
           id?: string
           is_pre_order?: boolean
+          mp_payment_id?: string | null
           observacoes?: string | null
           pago_at?: string | null
+          pix_qr_base64?: string | null
           status?: Database["public"]["Enums"]["pedido_status"]
           subtotal?: number
           taxa_entrega?: number
