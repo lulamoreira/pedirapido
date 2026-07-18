@@ -348,7 +348,6 @@ export const checkoutLojaPublica = createServerFn({ method: "POST" })
 
     return { id: pedido.id, status, total, checkout_url };
   });
-  });
 
 
 // -------- Acompanhamento público de pedido --------
