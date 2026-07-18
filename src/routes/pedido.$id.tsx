@@ -2,11 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect } from "react";
-import { CheckCircle2, Clock, Truck, Package, Copy, Loader2, Droplet, MessageCircle, ChefHat } from "lucide-react";
+import { CheckCircle2, Truck, Package, Loader2, Droplet, MessageCircle, ChefHat } from "lucide-react";
 import { getPedidoPublico } from "@/lib/loja.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 
 export const Route = createFileRoute("/pedido/$id")({
   head: () => ({
