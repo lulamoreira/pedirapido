@@ -174,25 +174,12 @@ function PedidoTrack() {
           </div>
         )}
 
-        {p.codigo_pix && p.status === "pendente" && (
-          <div className="rounded-2xl bg-white p-4 shadow-soft space-y-2">
-            <p className="text-xs font-black uppercase tracking-wider text-primary">Pague com PIX</p>
-            {p.pix_qr_base64 && (
-              <img
-                src={`data:image/png;base64,${p.pix_qr_base64}`}
-                alt="QR Code PIX"
-                className="mx-auto h-44 w-44 rounded-xl"
-              />
-            )}
-            <p className="text-[10px] break-all font-mono bg-secondary p-2 rounded-xl">{p.codigo_pix}</p>
-            <button
-              onClick={() => { navigator.clipboard.writeText(String(p.codigo_pix)); toast.success("Código copiado"); }}
-              className="w-full rounded-2xl h-11 gradient-primary text-primary-foreground font-black flex items-center justify-center gap-2"
-            >
-              <Copy className="h-4 w-4" /> Copiar código
-            </button>
+        {p.forma_pagamento === "online" && p.status === "pendente" && (
+          <div className="rounded-2xl bg-amber-50 border-2 border-amber-200 p-4 text-sm text-amber-900 font-bold text-center">
+            Aguardando confirmação do pagamento…
           </div>
         )}
+
 
         <div className="rounded-2xl bg-white p-4 shadow-soft">
           <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Itens</p>
