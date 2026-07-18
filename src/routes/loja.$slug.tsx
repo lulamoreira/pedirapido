@@ -397,6 +397,7 @@ function LojaPage() {
           proximoDia={d.proximoDia ?? null}
           proximoHorario={d.proximoHorario ?? null}
           verificacaoExigida={!!d.verificacao_whatsapp}
+          aceitaOnline={!!(data as any)?.aceita_pagamento_online}
           onClose={() => setCheckoutOpen(false)}
           onUpdateQty={updateQty}
           onRemove={removeItem}
