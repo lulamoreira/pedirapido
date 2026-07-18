@@ -9,7 +9,7 @@ import { maskCnpj } from "@/lib/br-utils";
 import { toast } from "sonner";
 import {
   ShoppingBag, Plus, Minus, Clock, MapPin, Droplet, Wine, Package as PkgIcon,
-  Cookie, Sparkles, ChevronLeft, X, Loader2, CheckCircle2, Copy, Search, Moon,
+  Cookie, Sparkles, ChevronLeft, X, Loader2, CheckCircle2, Search, Moon, CreditCard, Banknote, Wallet,
 } from "lucide-react";
 
 import {
