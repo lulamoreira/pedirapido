@@ -607,6 +607,10 @@ function CheckoutModal(p: CheckoutProps) {
         },
 
       });
+      if (r.checkout_url) {
+        window.location.href = r.checkout_url;
+        return;
+      }
       setResultado(r);
       setStep(4);
       p.onSuccess();
