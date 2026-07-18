@@ -351,7 +351,7 @@ export const checkoutLojaPublica = createServerFn({ method: "POST" })
       }
     }
 
-    return { id: pedido.id, status, total, codigo_pix };
+    return { id: pedido.id, status, total, codigo_pix, pix_qr_base64 };
   });
 
 
