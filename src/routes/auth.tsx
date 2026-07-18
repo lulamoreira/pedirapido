@@ -18,18 +18,16 @@ function AuthPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const go = (email?: string | null) => {
-      const master = !!email && ["lula1973@gmail.com", "lula1973@gmail.com.br"].includes(email.toLowerCase());
-      navigate({ to: master ? "/admin" : "/dashboard", replace: true });
-    };
+    const go = () => navigate({ to: "/dashboard", replace: true });
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) go(data.session.user.email);
+      if (data.session) go();
     });
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session) go(session.user.email);
+      if (event === "SIGNED_IN" && session) go();
     });
     return () => sub.subscription.unsubscribe();
   }, [navigate]);
+
 
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault();
