@@ -441,7 +441,7 @@ function CheckoutModal(p: CheckoutProps) {
   const [forma, setForma] = useState<"pix" | "cartao" | "dinheiro">("pix");
   const [troco, setTroco] = useState<string>("");
   const [loading, setLoading] = useState(false);
-  const [resultado, setResultado] = useState<{ id: string; codigo_pix: string | null; total: number; status: string } | null>(null);
+  const [resultado, setResultado] = useState<{ id: string; codigo_pix: string | null; pix_qr_base64: string | null; total: number; status: string } | null>(null);
   const [buscandoCli, setBuscandoCli] = useState(false);
   const [cepLoading, setCepLoading] = useState(false);
 
@@ -839,7 +839,14 @@ function CheckoutModal(p: CheckoutProps) {
               </div>
               {resultado.codigo_pix && (
                 <div className="rounded-2xl bg-white p-4 shadow-soft text-left space-y-2">
-                  <p className="text-xs font-black uppercase tracking-wider text-primary">Pague com PIX Copia e Cola</p>
+                  <p className="text-xs font-black uppercase tracking-wider text-primary">Pague com PIX</p>
+                  {resultado.pix_qr_base64 && (
+                    <img
+                      src={`data:image/png;base64,${resultado.pix_qr_base64}`}
+                      alt="QR Code PIX"
+                      className="mx-auto h-44 w-44 rounded-xl"
+                    />
+                  )}
                   <p className="text-[10px] break-all font-mono bg-secondary p-2 rounded-xl">{resultado.codigo_pix}</p>
                   <Button
                     onClick={() => {

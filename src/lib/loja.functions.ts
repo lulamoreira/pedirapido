@@ -257,9 +257,38 @@ export const checkoutLojaPublica = createServerFn({ method: "POST" })
     const isPix = data.forma_pagamento === "pix";
     // Pré-pedidos ficam sempre pendentes até o lojista abrir
     const status = isPreOrder ? "pendente" : (isPix ? "pendente" : "preparo");
-    const codigo_pix = isPix
-      ? generatePixCode({ chave: (dist as any).email, nome: dist.nome, cidade: "SAO PAULO", valor: total })
-      : null;
+
+    let codigo_pix: string | null = null;
+    let mp_payment_id: string | null = null;
+    let pix_qr_base64: string | null = null;
+
+    if (isPix) {
+      try {
+        const { getValidMpToken, criarPixMercadoPago } = await import("@/lib/mp.server");
+        const token = await getValidMpToken(dist.id);
+        if (token) {
+          const emailPagador = `cliente-${digits}@pedirapido.com.br`;
+          const pix = await criarPixMercadoPago({
+            token,
+            valor: total,
+            descricao: `Pedido - ${dist.nome}`,
+            payerEmail: emailPagador,
+            payerNome: nomeNorm ?? "Cliente",
+          });
+          if (pix) {
+            codigo_pix = pix.copia_e_cola;
+            mp_payment_id = pix.payment_id;
+            pix_qr_base64 = pix.qr_base64;
+          }
+        }
+      } catch (err) {
+        console.error("[checkout] Mercado Pago indisponível, usando fallback estático");
+        void err;
+      }
+      if (!codigo_pix) {
+        codigo_pix = generatePixCode({ chave: (dist as any).email, nome: dist.nome, cidade: "SAO PAULO", valor: total });
+      }
+    }
 
     const obsParts = [isPreOrder ? `[Pré-pedido]` : `[Cardápio Web]`];
     if (data.observacoes) obsParts.push(data.observacoes);
@@ -272,12 +301,16 @@ export const checkoutLojaPublica = createServerFn({ method: "POST" })
       subtotal, taxa_entrega: taxa, total,
       status: status as any,
       codigo_pix,
+      mp_payment_id,
+      pix_qr_base64,
       observacoes: obsParts.join(" | "),
       pago_at: (isPix || isPreOrder) ? null : new Date().toISOString(),
       forma_pagamento: data.forma_pagamento,
       is_pre_order: isPreOrder,
-    } as any).select("id,total,status,codigo_pix").single();
+    } as any).select("id,total,status,codigo_pix,pix_qr_base64").single();
     if (ePed) throw ePed;
+
+
 
 
     const { error: eIt } = await supabaseAdmin.from("pedido_itens")
@@ -318,7 +351,7 @@ export const checkoutLojaPublica = createServerFn({ method: "POST" })
       }
     }
 
-    return { id: pedido.id, status, total, codigo_pix };
+    return { id: pedido.id, status, total, codigo_pix, pix_qr_base64 };
   });
 
 
@@ -329,7 +362,7 @@ export const getPedidoPublico = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: pedido, error } = await supabaseAdmin
       .from("pedidos")
-      .select("id,status,total,subtotal,taxa_entrega,forma_pagamento,codigo_pix,created_at,pago_at,entregue_at,distribuidora_id,distribuidora:distribuidoras(nome,nome_fantasia,razao_social,cnpj,tempo_estimado_min,telefone,logo_url),itens:pedido_itens(quantidade,preco_unit,subtotal,produto:produtos(nome,volume_valor,volume_unidade,marca,tipo_embalagem)),entregador:entregadores(nome,veiculo_modelo,veiculo_placa)")
+      .select("id,status,total,subtotal,taxa_entrega,forma_pagamento,codigo_pix,pix_qr_base64,created_at,pago_at,entregue_at,distribuidora_id,distribuidora:distribuidoras(nome,nome_fantasia,razao_social,cnpj,tempo_estimado_min,telefone,logo_url),itens:pedido_itens(quantidade,preco_unit,subtotal,produto:produtos(nome,volume_valor,volume_unidade,marca,tipo_embalagem)),entregador:entregadores(nome,veiculo_modelo,veiculo_placa)")
       .eq("id", data.id)
       .maybeSingle();
     if (error) throw error;
