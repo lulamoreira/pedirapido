@@ -441,7 +441,7 @@ function CheckoutModal(p: CheckoutProps) {
   const [forma, setForma] = useState<"pix" | "cartao" | "dinheiro">("pix");
   const [troco, setTroco] = useState<string>("");
   const [loading, setLoading] = useState(false);
-  const [resultado, setResultado] = useState<{ id: string; codigo_pix: string | null; total: number; status: string } | null>(null);
+  const [resultado, setResultado] = useState<{ id: string; codigo_pix: string | null; pix_qr_base64: string | null; total: number; status: string } | null>(null);
   const [buscandoCli, setBuscandoCli] = useState(false);
   const [cepLoading, setCepLoading] = useState(false);
 
