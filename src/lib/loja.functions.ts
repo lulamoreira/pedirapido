@@ -109,7 +109,15 @@ export const getLojaPublica = createServerFn({ method: "GET" })
     void hhmm; // usado apenas para debug futuro
 
 
-    return { distribuidora: { ...dist, aberto, proximoDia, proximoHorario }, produtos, isBusiness, horarios: horarios ?? [] };
+    // Loja aceita pagamento online? (Mercado Pago conectado)
+    const { data: integ } = await supabaseAdmin
+      .from("integracoes_pagamento")
+      .select("access_token")
+      .eq("distribuidora_id", dist.id)
+      .maybeSingle();
+    const aceita_pagamento_online = !!(integ && (integ as any).access_token);
+
+    return { distribuidora: { ...dist, aberto, proximoDia, proximoHorario }, produtos, isBusiness, horarios: horarios ?? [], aceita_pagamento_online };
   });
 
 
